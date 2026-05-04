@@ -77,11 +77,7 @@ class MilkAppBar extends StatelessWidget implements PreferredSizeWidget {
           height: 1,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                AppColors.crimson,
-                AppColors.mauve,
-                Colors.transparent,
-              ],
+              colors: [AppColors.crimson, AppColors.mauve, Colors.transparent],
               stops: [0.0, 0.5, 1.0],
             ),
           ),

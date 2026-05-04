@@ -40,13 +40,15 @@ final class _Band {
 final class MilkPaletteOne extends MilkPalette {
   const MilkPaletteOne();
 
-  @override String get name => 'MILK I';
-  @override String get label => 'Crimson · Mauve · Void';
+  @override
+  String get name => 'MILK I';
+  @override
+  String get label => 'Crimson · Mauve · Void';
 
   @override
   List<_Band> get bands => const [
-    _Band(25,  0xFF000000),
-    _Band(70,  0xFF000000, secondary: 0xFF660020),
+    _Band(25, 0xFF000000),
+    _Band(70, 0xFF000000, secondary: 0xFF660020),
     _Band(120, 0xFF660020, secondary: 0xFF000000),
     _Band(200, 0xFF660020),
     _Band(230, 0xFF890092, secondary: 0xFF660020),
@@ -58,14 +60,16 @@ final class MilkPaletteOne extends MilkPalette {
 final class MilkPaletteTwo extends MilkPalette {
   const MilkPaletteTwo();
 
-  @override String get name => 'MILK II';
-  @override String get label => 'Blood · Rust · Void';
+  @override
+  String get name => 'MILK II';
+  @override
+  String get label => 'Blood · Rust · Void';
 
   @override
   List<_Band> get bands => const [
-    _Band(25,  0xFF000000),
-    _Band(70,  0xFF000000, secondary: 0xFF5C2420),
-    _Band(90,  0xFF5C2420, secondary: 0xFF000000),
+    _Band(25, 0xFF000000),
+    _Band(70, 0xFF000000, secondary: 0xFF5C2420),
+    _Band(90, 0xFF5C2420, secondary: 0xFF000000),
     _Band(150, 0xFF5C2420),
     _Band(200, 0xFFCB2B2B, secondary: 0xFF5C2420),
     _Band(256, 0xFFCB2B2B),

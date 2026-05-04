@@ -12,8 +12,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final _picker = ImagePicker();
   bool _isPickingFile = false;
   bool _isHoveringDrop = false;
@@ -59,9 +58,9 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       final xFile = await _picker.pickImage(source: source);
       if (xFile != null && mounted) {
-        await Navigator.of(context).push(_slideRoute(
-          EditorScreen(imageFile: File(xFile.path)),
-        ));
+        await Navigator.of(
+          context,
+        ).push(_slideRoute(EditorScreen(imageFile: File(xFile.path))));
       }
     } finally {
       if (mounted) setState(() => _isPickingFile = false);
@@ -97,19 +96,22 @@ class _HomeScreenState extends State<HomeScreen>
             right: -80,
             child: AnimatedBuilder(
               animation: _glowAnim,
-              builder: (_, __) => Container(
-                width: 340,
-                height: 340,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.mauve.withOpacity(0.09 + _glowAnim.value * 0.05),
-                      Colors.transparent,
-                    ],
+              builder:
+                  (_, __) => Container(
+                    width: 340,
+                    height: 340,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.mauve.withOpacity(
+                            0.09 + _glowAnim.value * 0.05,
+                          ),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
             ),
           ),
           // Radial glow bottom-left
@@ -118,19 +120,22 @@ class _HomeScreenState extends State<HomeScreen>
             left: -60,
             child: AnimatedBuilder(
               animation: _glowAnim,
-              builder: (_, __) => Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.crimson.withOpacity(0.08 + _glowAnim.value * 0.06),
-                      Colors.transparent,
-                    ],
+              builder:
+                  (_, __) => Container(
+                    width: 280,
+                    height: 280,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.crimson.withOpacity(
+                            0.08 + _glowAnim.value * 0.06,
+                          ),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
             ),
           ),
           SafeArea(
@@ -243,12 +248,20 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               const SizedBox(height: 4),
               _PaletteStamp(
-                colors: const [Color(0xFF000000), Color(0xFF660020), Color(0xFF890092)],
+                colors: const [
+                  Color(0xFF000000),
+                  Color(0xFF660020),
+                  Color(0xFF890092),
+                ],
                 label: 'I',
               ),
               const SizedBox(height: 6),
               _PaletteStamp(
-                colors: const [Color(0xFF000000), Color(0xFF5C2420), Color(0xFFCB2B2B)],
+                colors: const [
+                  Color(0xFF000000),
+                  Color(0xFF5C2420),
+                  Color(0xFFCB2B2B),
+                ],
                 label: 'II',
               ),
             ],
@@ -300,13 +313,17 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
-                child: _isPickingFile
-                    ? const _LoadingIndicator(key: ValueKey('loading'))
-                    : const _MilkBagIcon(key: ValueKey('icon'), size: 96),
+                child:
+                    _isPickingFile
+                        ? const _LoadingIndicator(key: ValueKey('loading'))
+                        : const _MilkBagIcon(key: ValueKey('icon'), size: 96),
               ),
               const SizedBox(height: 28),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 9,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.crypt,
                   borderRadius: BorderRadius.circular(24),
@@ -345,7 +362,8 @@ class _HomeScreenState extends State<HomeScreen>
             child: _SourceButton(
               icon: Icons.photo_library_outlined,
               label: 'GALLERY',
-              onTap: _isPickingFile ? null : () => _pickImage(ImageSource.gallery),
+              onTap:
+                  _isPickingFile ? null : () => _pickImage(ImageSource.gallery),
             ),
           ),
           const SizedBox(width: 12),
@@ -353,7 +371,8 @@ class _HomeScreenState extends State<HomeScreen>
             child: _SourceButton(
               icon: Icons.camera_alt_outlined,
               label: 'CAMERA',
-              onTap: _isPickingFile ? null : () => _pickImage(ImageSource.camera),
+              onTap:
+                  _isPickingFile ? null : () => _pickImage(ImageSource.camera),
               accent: true,
             ),
           ),
@@ -376,25 +395,32 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           Row(
-            children: List.generate(3, (i) => Padding(
-              padding: EdgeInsets.only(left: i > 0 ? 4 : 0),
-              child: Container(
-                width: 4,
-                height: 4,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: i == 0
-                      ? AppColors.crimson
-                      : AppColors.crimson.withOpacity(0.3 - i * 0.1),
-                  boxShadow: i == 0
-                      ? [BoxShadow(
-                          color: AppColors.crimson.withOpacity(0.7),
-                          blurRadius: 6,
-                        )]
-                      : null,
+            children: List.generate(
+              3,
+              (i) => Padding(
+                padding: EdgeInsets.only(left: i > 0 ? 4 : 0),
+                child: Container(
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        i == 0
+                            ? AppColors.crimson
+                            : AppColors.crimson.withOpacity(0.3 - i * 0.1),
+                    boxShadow:
+                        i == 0
+                            ? [
+                              BoxShadow(
+                                color: AppColors.crimson.withOpacity(0.7),
+                                blurRadius: 6,
+                              ),
+                            ]
+                            : null,
+                  ),
                 ),
               ),
-            )),
+            ),
           ),
         ],
       ),
@@ -424,9 +450,10 @@ class _PaletteStamp extends StatelessWidget {
       ClipRRect(
         borderRadius: BorderRadius.circular(2),
         child: Row(
-          children: colors
-              .map((c) => Container(width: 8, height: 22, color: c))
-              .toList(),
+          children:
+              colors
+                  .map((c) => Container(width: 8, height: 22, color: c))
+                  .toList(),
         ),
       ),
     ],
@@ -471,18 +498,22 @@ class _SourceButtonState extends State<_SourceButton> {
         duration: const Duration(milliseconds: 120),
         height: 52,
         decoration: BoxDecoration(
-          color: _pressed
-              ? (widget.accent ? AppColors.maroon : AppColors.vessel)
-              : bg,
+          color:
+              _pressed
+                  ? (widget.accent ? AppColors.maroon : AppColors.vessel)
+                  : bg,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: border, width: widget.accent ? 0 : 1),
-          boxShadow: widget.accent && !_pressed
-              ? [BoxShadow(
-                  color: AppColors.crimson.withOpacity(0.28),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                )]
-              : null,
+          boxShadow:
+              widget.accent && !_pressed
+                  ? [
+                    BoxShadow(
+                      color: AppColors.crimson.withOpacity(0.28),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                  : null,
         ),
         child: Opacity(
           opacity: disabled ? 0.4 : 1.0,
@@ -544,41 +575,47 @@ class _MilkBagPainter extends CustomPainter {
     final h = size.height;
 
     // Soft shadow beneath bag
-    final shadowPaint = Paint()
-      ..color = AppColors.crimson.withOpacity(0.18)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
-    final shadowPath = Path()
-      ..moveTo(w * 0.14, h * 0.28)
-      ..lineTo(w * 0.03, h * 0.95)
-      ..lineTo(w * 0.97, h * 0.95)
-      ..lineTo(w * 0.86, h * 0.28)
-      ..close();
+    final shadowPaint =
+        Paint()
+          ..color = AppColors.crimson.withOpacity(0.18)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
+    final shadowPath =
+        Path()
+          ..moveTo(w * 0.14, h * 0.28)
+          ..lineTo(w * 0.03, h * 0.95)
+          ..lineTo(w * 0.97, h * 0.95)
+          ..lineTo(w * 0.86, h * 0.28)
+          ..close();
     canvas.drawPath(shadowPath, shadowPaint);
 
     // Bag body
-    final bagPaint = Paint()
-      ..color = AppColors.crimson
-      ..style = PaintingStyle.fill;
-    final bagPath = Path()
-      ..moveTo(w * 0.14, h * 0.28)
-      ..lineTo(w * 0.03, h * 0.92)
-      ..quadraticBezierTo(w * 0.03, h * 0.96, w * 0.07, h * 0.96)
-      ..lineTo(w * 0.93, h * 0.96)
-      ..quadraticBezierTo(w * 0.97, h * 0.96, w * 0.97, h * 0.92)
-      ..lineTo(w * 0.86, h * 0.28)
-      ..close();
+    final bagPaint =
+        Paint()
+          ..color = AppColors.crimson
+          ..style = PaintingStyle.fill;
+    final bagPath =
+        Path()
+          ..moveTo(w * 0.14, h * 0.28)
+          ..lineTo(w * 0.03, h * 0.92)
+          ..quadraticBezierTo(w * 0.03, h * 0.96, w * 0.07, h * 0.96)
+          ..lineTo(w * 0.93, h * 0.96)
+          ..quadraticBezierTo(w * 0.97, h * 0.96, w * 0.97, h * 0.92)
+          ..lineTo(w * 0.86, h * 0.28)
+          ..close();
     canvas.drawPath(bagPath, bagPaint);
 
     // Inner highlight (left edge lighter band)
-    final highlightPaint = Paint()
-      ..color = AppColors.chalk.withOpacity(0.05)
-      ..style = PaintingStyle.fill;
-    final highlightPath = Path()
-      ..moveTo(w * 0.14, h * 0.28)
-      ..lineTo(w * 0.03, h * 0.92)
-      ..lineTo(w * 0.18, h * 0.92)
-      ..lineTo(w * 0.26, h * 0.28)
-      ..close();
+    final highlightPaint =
+        Paint()
+          ..color = AppColors.chalk.withOpacity(0.05)
+          ..style = PaintingStyle.fill;
+    final highlightPath =
+        Path()
+          ..moveTo(w * 0.14, h * 0.28)
+          ..lineTo(w * 0.03, h * 0.92)
+          ..lineTo(w * 0.18, h * 0.92)
+          ..lineTo(w * 0.26, h * 0.28)
+          ..close();
     canvas.drawPath(highlightPath, highlightPaint);
 
     // Seal / top clamp
@@ -590,10 +627,15 @@ class _MilkBagPainter extends CustomPainter {
     canvas.drawRRect(sealRRect, sealPaint);
 
     // Accent stripe on seal
-    final stripeGradient = Paint()
-      ..shader = LinearGradient(
-        colors: [AppColors.mauve.withOpacity(0.0), AppColors.mauve, AppColors.mauve.withOpacity(0.0)],
-      ).createShader(Rect.fromLTWH(w * 0.07, h * 0.21, w * 0.86, h * 0.04));
+    final stripeGradient =
+        Paint()
+          ..shader = LinearGradient(
+            colors: [
+              AppColors.mauve.withOpacity(0.0),
+              AppColors.mauve,
+              AppColors.mauve.withOpacity(0.0),
+            ],
+          ).createShader(Rect.fromLTWH(w * 0.07, h * 0.21, w * 0.86, h * 0.04));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(w * 0.10, h * 0.21, w * 0.80, h * 0.04),
@@ -604,10 +646,11 @@ class _MilkBagPainter extends CustomPainter {
 
     // Eyes — void squares with subtle border
     final eyePaint = Paint()..color = AppColors.void_;
-    final eyeBorderPaint = Paint()
-      ..color = AppColors.abyss
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+    final eyeBorderPaint =
+        Paint()
+          ..color = AppColors.abyss
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
 
     final leftEye = Rect.fromLTWH(w * 0.22, h * 0.53, w * 0.18, h * 0.16);
     final rightEye = Rect.fromLTWH(w * 0.60, h * 0.53, w * 0.18, h * 0.16);
@@ -617,14 +660,16 @@ class _MilkBagPainter extends CustomPainter {
     canvas.drawRect(rightEye, eyeBorderPaint);
 
     // Subtle mouth curve
-    final mouthPaint = Paint()
-      ..color = AppColors.maroon
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round;
-    final mouthPath = Path()
-      ..moveTo(w * 0.33, h * 0.76)
-      ..quadraticBezierTo(w * 0.50, h * 0.83, w * 0.67, h * 0.76);
+    final mouthPaint =
+        Paint()
+          ..color = AppColors.maroon
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0
+          ..strokeCap = StrokeCap.round;
+    final mouthPath =
+        Path()
+          ..moveTo(w * 0.33, h * 0.76)
+          ..quadraticBezierTo(w * 0.50, h * 0.83, w * 0.67, h * 0.76);
     canvas.drawPath(mouthPath, mouthPaint);
   }
 

@@ -62,26 +62,22 @@ class _BeforeAfterViewState extends State<BeforeAfterView>
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         return GestureDetector(
-          onHorizontalDragStart: hasFiltered
-              ? (_) => setState(() => _isDragging = true)
-              : null,
-          onHorizontalDragUpdate: hasFiltered
-              ? (d) => setState(() {
-                  _split = (_split + d.delta.dx / width).clamp(0.04, 0.96);
-                })
-              : null,
-          onHorizontalDragEnd: hasFiltered
-              ? (_) => setState(() => _isDragging = false)
-              : null,
+          onHorizontalDragStart:
+              hasFiltered ? (_) => setState(() => _isDragging = true) : null,
+          onHorizontalDragUpdate:
+              hasFiltered
+                  ? (d) => setState(() {
+                    _split = (_split + d.delta.dx / width).clamp(0.04, 0.96);
+                  })
+                  : null,
+          onHorizontalDragEnd:
+              hasFiltered ? (_) => setState(() => _isDragging = false) : null,
           child: Stack(
             fit: StackFit.expand,
             children: [
               // ── Original (full, behind) ──────────────────────────────
               _ImagePane(
-                child: Image.file(
-                  widget.originalFile,
-                  fit: BoxFit.contain,
-                ),
+                child: Image.file(widget.originalFile, fit: BoxFit.contain),
               ),
 
               // ── Filtered (clipped left) ──────────────────────────────
@@ -111,8 +107,7 @@ class _BeforeAfterViewState extends State<BeforeAfterView>
                 ),
 
               // ── Processing overlay ────────────────────────────────────
-              if (widget.isProcessing)
-                const _ProcessingOverlay(),
+              if (widget.isProcessing) const _ProcessingOverlay(),
 
               // ── Corner labels ─────────────────────────────────────────
               if (hasFiltered)
@@ -124,10 +119,7 @@ class _BeforeAfterViewState extends State<BeforeAfterView>
               Positioned(
                 top: 14,
                 right: 14,
-                child: _PaneLabel(
-                  text: 'BEFORE',
-                  accent: false,
-                ),
+                child: _PaneLabel(text: 'BEFORE', accent: false),
               ),
 
               // ── Drag hint (before filter is applied) ──────────────────
@@ -151,10 +143,8 @@ class _ImagePane extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: AppColors.abyss,
-    child: child,
-  );
+  Widget build(BuildContext context) =>
+      ColoredBox(color: AppColors.abyss, child: child);
 }
 
 class _DividerHandle extends StatelessWidget {
@@ -195,13 +185,18 @@ class _DividerHandle extends StatelessWidget {
             color: isDragging ? AppColors.crimson : AppColors.maroon,
             shape: BoxShape.circle,
             border: Border.all(
-              color: isDragging ? AppColors.chalk.withOpacity(0.3) : AppColors.crimson,
+              color:
+                  isDragging
+                      ? AppColors.chalk.withOpacity(0.3)
+                      : AppColors.crimson,
               width: 1.5,
             ),
-            boxShadow: [BoxShadow(
-              color: AppColors.crimson.withOpacity(isDragging ? 0.5 : 0.3),
-              blurRadius: isDragging ? 18 : 10,
-            )],
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.crimson.withOpacity(isDragging ? 0.5 : 0.3),
+                blurRadius: isDragging ? 18 : 10,
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -261,14 +256,17 @@ class _ProcessingOverlayState extends State<_ProcessingOverlay>
         children: [
           AnimatedBuilder(
             animation: _anim,
-            builder: (_, __) => SizedBox(
-              width: 36,
-              height: 36,
-              child: CircularProgressIndicator(
-                color: AppColors.crimson.withOpacity(0.6 + _anim.value * 0.4),
-                strokeWidth: 1.5,
-              ),
-            ),
+            builder:
+                (_, __) => SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: CircularProgressIndicator(
+                    color: AppColors.crimson.withOpacity(
+                      0.6 + _anim.value * 0.4,
+                    ),
+                    strokeWidth: 1.5,
+                  ),
+                ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -303,20 +301,24 @@ class _PaneLabel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
-      color: accent
-          ? AppColors.crimson.withOpacity(0.85)
-          : AppColors.abyss.withOpacity(0.75),
+      color:
+          accent
+              ? AppColors.crimson.withOpacity(0.85)
+              : AppColors.abyss.withOpacity(0.75),
       borderRadius: BorderRadius.circular(5),
       border: Border.all(
         color: accent ? AppColors.crimson : AppColors.border,
         width: accent ? 0 : 1,
       ),
-      boxShadow: accent
-          ? [BoxShadow(
-              color: AppColors.crimson.withOpacity(0.3),
-              blurRadius: 8,
-            )]
-          : null,
+      boxShadow:
+          accent
+              ? [
+                BoxShadow(
+                  color: AppColors.crimson.withOpacity(0.3),
+                  blurRadius: 8,
+                ),
+              ]
+              : null,
     ),
     child: Text(
       text,

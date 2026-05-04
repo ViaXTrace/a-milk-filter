@@ -107,14 +107,18 @@ abstract final class AppTheme {
       ),
     ),
     switchTheme: SwitchThemeData(
-      thumbColor: WidgetStateProperty.resolveWith((states) =>
-          states.contains(WidgetState.selected)
-              ? AppColors.chalk
-              : AppColors.ash),
-      trackColor: WidgetStateProperty.resolveWith((states) =>
-          states.contains(WidgetState.selected)
-              ? AppColors.crimson
-              : AppColors.vessel),
+      thumbColor: WidgetStateProperty.resolveWith(
+        (states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.chalk
+                : AppColors.ash,
+      ),
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.crimson
+                : AppColors.vessel,
+      ),
       trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
     ),
     pageTransitionsTheme: const PageTransitionsTheme(

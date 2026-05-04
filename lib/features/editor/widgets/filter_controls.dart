@@ -29,9 +29,8 @@ class FilterControls extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: _PalettePicker(
           selected: options.palette,
-          onChanged: enabled
-              ? (p) => onChanged(options.copyWith(palette: p))
-              : null,
+          onChanged:
+              enabled ? (p) => onChanged(options.copyWith(palette: p)) : null,
         ),
       ),
 
@@ -54,9 +53,10 @@ class FilterControls extends StatelessWidget {
           label: 'Pointillism',
           sublabel: '70% stochastic dithering at transitions',
           value: options.pointillism,
-          onChanged: enabled
-              ? (v) => onChanged(options.copyWith(pointillism: v))
-              : null,
+          onChanged:
+              enabled
+                  ? (v) => onChanged(options.copyWith(pointillism: v))
+                  : null,
         ),
       ),
       const SizedBox(height: 8),
@@ -110,11 +110,13 @@ class _PalettePicker extends StatelessWidget {
     children: [
       for (int i = 0; i < _palettes.length; i++) ...[
         if (i > 0) const SizedBox(width: 10),
-        Expanded(child: _PaletteCard(
-          palette: _palettes[i],
-          isSelected: _palettes[i].runtimeType == selected.runtimeType,
-          onTap: () => onChanged?.call(_palettes[i]),
-        )),
+        Expanded(
+          child: _PaletteCard(
+            palette: _palettes[i],
+            isSelected: _palettes[i].runtimeType == selected.runtimeType,
+            onTap: () => onChanged?.call(_palettes[i]),
+          ),
+        ),
       ],
     ],
   );
@@ -150,9 +152,10 @@ class _PaletteCardState extends State<_PaletteCard> {
         height: 60,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: _pressed
-              ? AppColors.vessel
-              : selected
+          color:
+              _pressed
+                  ? AppColors.vessel
+                  : selected
                   ? AppColors.maroon
                   : AppColors.crypt,
           borderRadius: BorderRadius.circular(10),
@@ -160,13 +163,16 @@ class _PaletteCardState extends State<_PaletteCard> {
             color: selected ? AppColors.crimson : AppColors.border,
             width: selected ? 1.5 : 1,
           ),
-          boxShadow: selected
-              ? [BoxShadow(
-                  color: AppColors.crimson.withOpacity(0.2),
-                  blurRadius: 12,
-                  offset: const Offset(0, 2),
-                )]
-              : null,
+          boxShadow:
+              selected
+                  ? [
+                    BoxShadow(
+                      color: AppColors.crimson.withOpacity(0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                  : null,
         ),
         child: Row(
           children: [
@@ -189,9 +195,7 @@ class _PaletteCardState extends State<_PaletteCard> {
                   Text(
                     widget.palette.label,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: selected
-                          ? AppColors.dust
-                          : AppColors.ash,
+                      color: selected ? AppColors.dust : AppColors.ash,
                       fontSize: 8,
                       letterSpacing: 0.3,
                     ),
@@ -206,10 +210,12 @@ class _PaletteCardState extends State<_PaletteCard> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.crimson,
-                  boxShadow: [BoxShadow(
-                    color: AppColors.crimson.withOpacity(0.7),
-                    blurRadius: 6,
-                  )],
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.crimson.withOpacity(0.7),
+                      blurRadius: 6,
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -227,19 +233,24 @@ class _ColorPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = switch (palette) {
       MilkPaletteOne() => const [
-          Color(0xFF000000), Color(0xFF660020), Color(0xFF890092),
-        ],
+        Color(0xFF000000),
+        Color(0xFF660020),
+        Color(0xFF890092),
+      ],
       MilkPaletteTwo() => const [
-          Color(0xFF000000), Color(0xFF5C2420), Color(0xFFCB2B2B),
-        ],
+        Color(0xFF000000),
+        Color(0xFF5C2420),
+        Color(0xFFCB2B2B),
+      ],
     };
     return ClipRRect(
       borderRadius: BorderRadius.circular(3),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: colors
-            .map((c) => Container(width: 8, height: 10, color: c))
-            .toList(),
+        children:
+            colors
+                .map((c) => Container(width: 8, height: 10, color: c))
+                .toList(),
       ),
     );
   }
@@ -331,9 +342,10 @@ class _CompressionSectionState extends State<_CompressionSection> {
           padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
           decoration: BoxDecoration(
             color: AppColors.crypt,
-            borderRadius: active
-                ? const BorderRadius.vertical(top: Radius.circular(10))
-                : BorderRadius.circular(10),
+            borderRadius:
+                active
+                    ? const BorderRadius.vertical(top: Radius.circular(10))
+                    : BorderRadius.circular(10),
             border: Border.all(color: AppColors.border),
           ),
           child: Row(
@@ -368,9 +380,10 @@ class _CompressionSectionState extends State<_CompressionSection> {
               ),
               Switch(
                 value: active,
-                onChanged: widget.enabled
-                    ? (v) => widget.onChanged(v ? 50 : null)
-                    : null,
+                onChanged:
+                    widget.enabled
+                        ? (v) => widget.onChanged(v ? 50 : null)
+                        : null,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ],
@@ -379,65 +392,71 @@ class _CompressionSectionState extends State<_CompressionSection> {
         AnimatedSize(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
-          child: active
-              ? Container(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 16, 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.abyss,
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(10),
+          child:
+              active
+                  ? Container(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 16, 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.abyss,
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(10),
+                      ),
+                      border: Border(
+                        left: BorderSide(color: AppColors.border),
+                        right: BorderSide(color: AppColors.border),
+                        bottom: BorderSide(color: AppColors.border),
+                      ),
                     ),
-                    border: Border(
-                      left: BorderSide(color: AppColors.border),
-                      right: BorderSide(color: AppColors.border),
-                      bottom: BorderSide(color: AppColors.border),
+                    child: Row(
+                      children: [
+                        Text(
+                          'QUALITY',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelSmall?.copyWith(
+                            color: AppColors.ash,
+                            fontSize: 9,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackHeight: 2,
+                              thumbRadius: 6,
+                              overlayRadius: 14,
+                            ),
+                            child: Slider(
+                              value: (widget.quality ?? 50).toDouble(),
+                              min: 0,
+                              max: 100,
+                              divisions: 20,
+                              label: '${widget.quality ?? 50}',
+                              onChanged:
+                                  widget.enabled
+                                      ? (v) => widget.onChanged(v.round())
+                                      : null,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 26,
+                          child: Text(
+                            '${widget.quality ?? 50}',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.labelSmall?.copyWith(
+                              color: AppColors.crimson,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'QUALITY',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.ash,
-                          fontSize: 9,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            trackHeight: 2,
-                            thumbRadius: 6,
-                            overlayRadius: 14,
-                          ),
-                          child: Slider(
-                            value: (widget.quality ?? 50).toDouble(),
-                            min: 0,
-                            max: 100,
-                            divisions: 20,
-                            label: '${widget.quality ?? 50}',
-                            onChanged: widget.enabled
-                                ? (v) => widget.onChanged(v.round())
-                                : null,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 26,
-                        child: Text(
-                          '${widget.quality ?? 50}',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.crimson,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : const SizedBox.shrink(),
+                  )
+                  : const SizedBox.shrink(),
         ),
       ],
     );

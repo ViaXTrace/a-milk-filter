@@ -18,9 +18,7 @@ void main() {
     ),
   );
 
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.edgeToEdge,
-  );
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   runApp(const MilkFilterApp());
 }

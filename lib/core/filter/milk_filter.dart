@@ -36,7 +36,8 @@ Future<Uint8List> applyFilter(FilterPayload payload) async {
       final brightness = (pixel.r + pixel.g + pixel.b) / 3.0;
       final argb = palette.resolve(brightness, stochastic: stochastic);
       image.setPixelRgb(
-        x, y,
+        x,
+        y,
         (argb >> 16) & 0xFF,
         (argb >> 8) & 0xFF,
         argb & 0xFF,

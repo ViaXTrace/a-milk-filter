@@ -61,7 +61,10 @@ class _EditorScreenState extends State<EditorScreen>
     });
     try {
       final sourceBytes = await widget.imageFile.readAsBytes();
-      final payload = FilterPayload(sourceBytes: sourceBytes, options: _options);
+      final payload = FilterPayload(
+        sourceBytes: sourceBytes,
+        options: _options,
+      );
       final result = await compute(applyFilter, payload);
       if (mounted) {
         setState(() {
@@ -109,10 +112,9 @@ class _EditorScreenState extends State<EditorScreen>
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/milk_filter_share.png');
       await file.writeAsBytes(bytes);
-      await Share.shareXFiles(
-        [XFile(file.path, mimeType: 'image/png')],
-        text: 'Filtered with A Milk Filter — Outside the Bag',
-      );
+      await Share.shareXFiles([
+        XFile(file.path, mimeType: 'image/png'),
+      ], text: 'Filtered with A Milk Filter — Outside the Bag');
     } catch (e) {
       if (mounted) _showSnack('Share failed: $e');
     }
@@ -228,9 +230,7 @@ class _ControlPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     decoration: const BoxDecoration(
       color: AppColors.abyss,
-      border: Border(
-        top: BorderSide(color: AppColors.divider, width: 1),
-      ),
+      border: Border(top: BorderSide(color: AppColors.divider, width: 1)),
     ),
     child: Column(
       mainAxisSize: MainAxisSize.min,
@@ -253,36 +253,32 @@ class _ControlPanel extends StatelessWidget {
           child: Row(
             children: [
               // Primary apply button
-              Expanded(
-                child: _ApplyButton(
-                  state: state,
-                  onPressed: onApply,
-                ),
-              ),
+              Expanded(child: _ApplyButton(state: state, onPressed: onApply)),
 
               // Save / Share — only after filter is applied
               AnimatedSize(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOutCubic,
-                child: state == _ProcessState.done
-                    ? Row(
-                        children: [
-                          const SizedBox(width: 10),
-                          _ActionIconButton(
-                            icon: Icons.save_alt_rounded,
-                            label: 'SAVE',
-                            onTap: onSave,
-                          ),
-                          const SizedBox(width: 8),
-                          _ActionIconButton(
-                            icon: Icons.ios_share_rounded,
-                            label: 'SHARE',
-                            onTap: onShare,
-                            accent: true,
-                          ),
-                        ],
-                      )
-                    : const SizedBox.shrink(),
+                child:
+                    state == _ProcessState.done
+                        ? Row(
+                          children: [
+                            const SizedBox(width: 10),
+                            _ActionIconButton(
+                              icon: Icons.save_alt_rounded,
+                              label: 'SAVE',
+                              onTap: onSave,
+                            ),
+                            const SizedBox(width: 8),
+                            _ActionIconButton(
+                              icon: Icons.ios_share_rounded,
+                              label: 'SHARE',
+                              onTap: onShare,
+                              accent: true,
+                            ),
+                          ],
+                        )
+                        : const SizedBox.shrink(),
               ),
             ],
           ),
@@ -355,52 +351,57 @@ class _ApplyButtonState extends State<_ApplyButton> {
         duration: const Duration(milliseconds: 150),
         height: 52,
         decoration: BoxDecoration(
-          color: _pressed
-              ? AppColors.maroon
-              : processing
+          color:
+              _pressed
+                  ? AppColors.maroon
+                  : processing
                   ? AppColors.maroon
                   : AppColors.crimson,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: processing || _pressed
-              ? null
-              : [BoxShadow(
-                  color: AppColors.crimson.withOpacity(0.3),
-                  blurRadius: 16,
-                  offset: const Offset(0, 3),
-                )],
-        ),
-        child: Center(
-          child: processing
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        color: AppColors.chalk,
-                        strokeWidth: 1.5,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'PROCESSING…',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.dust,
-                        letterSpacing: 1.2,
-                        fontSize: 11,
-                      ),
+          boxShadow:
+              processing || _pressed
+                  ? null
+                  : [
+                    BoxShadow(
+                      color: AppColors.crimson.withOpacity(0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 3),
                     ),
                   ],
-                )
-              : Text(
-                  done ? 'REAPPLY' : 'APPLY FILTER',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppColors.chalk,
-                    letterSpacing: 1.4,
-                    fontSize: 12,
+        ),
+        child: Center(
+          child:
+              processing
+                  ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          color: AppColors.chalk,
+                          strokeWidth: 1.5,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'PROCESSING…',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: AppColors.dust,
+                          letterSpacing: 1.2,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  )
+                  : Text(
+                    done ? 'REAPPLY' : 'APPLY FILTER',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: AppColors.chalk,
+                      letterSpacing: 1.4,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
         ),
       ),
     );
@@ -440,16 +441,18 @@ class _ActionIconButtonState extends State<_ActionIconButton> {
         width: 58,
         height: 52,
         decoration: BoxDecoration(
-          color: _pressed
-              ? AppColors.vessel
-              : widget.accent
+          color:
+              _pressed
+                  ? AppColors.vessel
+                  : widget.accent
                   ? AppColors.haze
                   : AppColors.crypt,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: widget.accent
-                ? AppColors.mauve.withOpacity(0.4)
-                : AppColors.border,
+            color:
+                widget.accent
+                    ? AppColors.mauve.withOpacity(0.4)
+                    : AppColors.border,
           ),
         ),
         child: Column(

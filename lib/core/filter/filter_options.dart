@@ -22,14 +22,12 @@ final class FilterOptions {
     bool? pointillism,
     int? compressionQuality,
     bool clearCompression = false,
-  }) =>
-      FilterOptions(
-        palette: palette ?? this.palette,
-        pointillism: pointillism ?? this.pointillism,
-        compressionQuality: clearCompression
-            ? null
-            : compressionQuality ?? this.compressionQuality,
-      );
+  }) => FilterOptions(
+    palette: palette ?? this.palette,
+    pointillism: pointillism ?? this.pointillism,
+    compressionQuality:
+        clearCompression ? null : compressionQuality ?? this.compressionQuality,
+  );
 
   @override
   String toString() =>
