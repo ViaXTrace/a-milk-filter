@@ -62,7 +62,7 @@ class MilkAppBar extends StatelessWidget implements PreferredSizeWidget {
                 Text(
                   subtitle!,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.mauve.withValues(alpha: 0.8),
+                    color: AppColors.mauve.withOpacity(0.8),
                     letterSpacing: 0.5,
                     fontSize: 9,
                   ),
