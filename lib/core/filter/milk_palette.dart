@@ -9,13 +9,13 @@ sealed class MilkPalette {
 
   String get name;
   String get label;
-  List<_Band> get bands;
+  List<_Band> get _bands;
 
   /// Maps [brightness] (0–255, arithmetic mean of R G B) to an ARGB int.
   /// When [stochastic] is true (pointillism mode), boundary bands dither
   /// at 70 % primary / 30 % secondary probability.
   int resolve(double brightness, {required bool stochastic}) {
-    for (final band in bands) {
+    for (final band in _bands) {
       if (brightness <= band.maxBrightness) {
         final secondary = band.secondary;
         if (secondary != null && stochastic) {
@@ -24,7 +24,7 @@ sealed class MilkPalette {
         return band.primary;
       }
     }
-    return bands.last.primary;
+    return _bands.last.primary;
   }
 }
 
@@ -46,7 +46,7 @@ final class MilkPaletteOne extends MilkPalette {
   String get label => 'Crimson · Mauve · Void';
 
   @override
-  List<_Band> get bands => const [
+  List<_Band> get _bands => const [
     _Band(25, 0xFF000000),
     _Band(70, 0xFF000000, secondary: 0xFF660020),
     _Band(120, 0xFF660020, secondary: 0xFF000000),
@@ -66,7 +66,7 @@ final class MilkPaletteTwo extends MilkPalette {
   String get label => 'Blood · Rust · Void';
 
   @override
-  List<_Band> get bands => const [
+  List<_Band> get _bands => const [
     _Band(25, 0xFF000000),
     _Band(70, 0xFF000000, secondary: 0xFF5C2420),
     _Band(90, 0xFF5C2420, secondary: 0xFF000000),

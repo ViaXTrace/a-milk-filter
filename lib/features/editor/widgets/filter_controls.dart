@@ -167,7 +167,7 @@ class _PaletteCardState extends State<_PaletteCard> {
               selected
                   ? [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.2),
+                      color: AppColors.crimson.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 2),
                     ),
@@ -212,7 +212,7 @@ class _PaletteCardState extends State<_PaletteCard> {
                   color: AppColors.crimson,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.7),
+                      color: AppColors.crimson.withValues(alpha: 0.7),
                       blurRadius: 6,
                     ),
                   ],
@@ -423,8 +423,12 @@ class _CompressionSectionState extends State<_CompressionSection> {
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
                               trackHeight: 2,
-                              thumbRadius: 6,
-                              overlayRadius: 14,
+                              thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 6,
+                              ),
+                              overlayShape: const RoundSliderOverlayShape(
+                                overlayRadius: 14,
+                              ),
                             ),
                             child: Slider(
                               value: (widget.quality ?? 50).toDouble(),

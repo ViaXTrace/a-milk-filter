@@ -167,8 +167,8 @@ class _DividerHandle extends StatelessWidget {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                AppColors.crimson.withOpacity(isDragging ? 0.9 : 0.6),
-                AppColors.crimson.withOpacity(isDragging ? 0.9 : 0.6),
+                AppColors.crimson.withValues(alpha: isDragging ? 0.9 : 0.6),
+                AppColors.crimson.withValues(alpha: isDragging ? 0.9 : 0.6),
                 Colors.transparent,
               ],
               stops: const [0.0, 0.15, 0.85, 1.0],
@@ -187,13 +187,15 @@ class _DividerHandle extends StatelessWidget {
             border: Border.all(
               color:
                   isDragging
-                      ? AppColors.chalk.withOpacity(0.3)
+                      ? AppColors.chalk.withValues(alpha: 0.3)
                       : AppColors.crimson,
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.crimson.withOpacity(isDragging ? 0.5 : 0.3),
+                color: AppColors.crimson.withValues(
+                  alpha: isDragging ? 0.5 : 0.3,
+                ),
                 blurRadius: isDragging ? 18 : 10,
               ),
             ],
@@ -249,7 +251,7 @@ class _ProcessingOverlayState extends State<_ProcessingOverlay>
 
   @override
   Widget build(BuildContext context) => ColoredBox(
-    color: AppColors.void_.withOpacity(0.78),
+    color: AppColors.void_.withValues(alpha: 0.78),
     child: Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -261,8 +263,8 @@ class _ProcessingOverlayState extends State<_ProcessingOverlay>
                   width: 36,
                   height: 36,
                   child: CircularProgressIndicator(
-                    color: AppColors.crimson.withOpacity(
-                      0.6 + _anim.value * 0.4,
+                    color: AppColors.crimson.withValues(
+                      alpha: 0.6 + _anim.value * 0.4,
                     ),
                     strokeWidth: 1.5,
                   ),
@@ -303,8 +305,8 @@ class _PaneLabel extends StatelessWidget {
     decoration: BoxDecoration(
       color:
           accent
-              ? AppColors.crimson.withOpacity(0.85)
-              : AppColors.abyss.withOpacity(0.75),
+              ? AppColors.crimson.withValues(alpha: 0.85)
+              : AppColors.abyss.withValues(alpha: 0.75),
       borderRadius: BorderRadius.circular(5),
       border: Border.all(
         color: accent ? AppColors.crimson : AppColors.border,
@@ -314,7 +316,7 @@ class _PaneLabel extends StatelessWidget {
           accent
               ? [
                 BoxShadow(
-                  color: AppColors.crimson.withOpacity(0.3),
+                  color: AppColors.crimson.withValues(alpha: 0.3),
                   blurRadius: 8,
                 ),
               ]
@@ -340,7 +342,7 @@ class _EmptyHint extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.abyss.withOpacity(0.6),
+        color: AppColors.abyss.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
       ),

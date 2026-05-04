@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -299,9 +298,9 @@ class _ErrorBanner extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     decoration: BoxDecoration(
-      color: AppColors.blood.withOpacity(0.10),
+      color: AppColors.blood.withValues(alpha: 0.10),
       border: Border(
-        bottom: BorderSide(color: AppColors.blood.withOpacity(0.3)),
+        bottom: BorderSide(color: AppColors.blood.withValues(alpha: 0.3)),
       ),
     ),
     child: Row(
@@ -363,7 +362,7 @@ class _ApplyButtonState extends State<_ApplyButton> {
                   ? null
                   : [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.3),
+                      color: AppColors.crimson.withValues(alpha: 0.3),
                       blurRadius: 16,
                       offset: const Offset(0, 3),
                     ),
@@ -451,7 +450,7 @@ class _ActionIconButtonState extends State<_ActionIconButton> {
           border: Border.all(
             color:
                 widget.accent
-                    ? AppColors.mauve.withOpacity(0.4)
+                    ? AppColors.mauve.withValues(alpha: 0.4)
                     : AppColors.border,
           ),
         ),

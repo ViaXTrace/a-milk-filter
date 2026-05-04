@@ -104,8 +104,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          AppColors.mauve.withOpacity(
-                            0.09 + _glowAnim.value * 0.05,
+                          AppColors.mauve.withValues(
+                            alpha: 0.09 + _glowAnim.value * 0.05,
                           ),
                           Colors.transparent,
                         ],
@@ -128,8 +128,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          AppColors.crimson.withOpacity(
-                            0.08 + _glowAnim.value * 0.06,
+                          AppColors.crimson.withValues(
+                            alpha: 0.08 + _glowAnim.value * 0.06,
                           ),
                           Colors.transparent,
                         ],
@@ -208,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: AppColors.chalk,
                           shadows: [
                             Shadow(
-                              color: AppColors.crimson.withOpacity(0.45),
+                              color: AppColors.crimson.withValues(alpha: 0.45),
                               blurRadius: 32,
                             ),
                           ],
@@ -221,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: AppColors.crimson,
                           shadows: [
                             Shadow(
-                              color: AppColors.crimson.withOpacity(0.5),
+                              color: AppColors.crimson.withValues(alpha: 0.5),
                               blurRadius: 24,
                             ),
                           ],
@@ -234,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Text(
                   'outside the bag',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.mauve.withOpacity(0.7),
+                    color: AppColors.mauve.withValues(alpha: 0.7),
                     letterSpacing: 1.2,
                     fontSize: 9,
                   ),
@@ -289,17 +289,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 color: AppColors.abyss,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.crimson.withOpacity(0.18 + glow * 0.22),
+                  color: AppColors.crimson.withValues(
+                    alpha: 0.18 + glow * 0.22,
+                  ),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.crimson.withOpacity(0.06 + glow * 0.08),
+                    color: AppColors.crimson.withValues(
+                      alpha: 0.06 + glow * 0.08,
+                    ),
                     blurRadius: 40,
                     spreadRadius: 2,
                   ),
                   BoxShadow(
-                    color: AppColors.mauve.withOpacity(0.03 + glow * 0.04),
+                    color: AppColors.mauve.withValues(
+                      alpha: 0.03 + glow * 0.04,
+                    ),
                     blurRadius: 60,
                     spreadRadius: 4,
                   ),
@@ -407,12 +413,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     color:
                         i == 0
                             ? AppColors.crimson
-                            : AppColors.crimson.withOpacity(0.3 - i * 0.1),
+                            : AppColors.crimson.withValues(
+                              alpha: 0.3 - i * 0.1,
+                            ),
                     boxShadow:
                         i == 0
                             ? [
                               BoxShadow(
-                                color: AppColors.crimson.withOpacity(0.7),
+                                color: AppColors.crimson.withValues(alpha: 0.7),
                                 blurRadius: 6,
                               ),
                             ]
@@ -508,7 +516,7 @@ class _SourceButtonState extends State<_SourceButton> {
               widget.accent && !_pressed
                   ? [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.28),
+                      color: AppColors.crimson.withValues(alpha: 0.28),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -577,7 +585,7 @@ class _MilkBagPainter extends CustomPainter {
     // Soft shadow beneath bag
     final shadowPaint =
         Paint()
-          ..color = AppColors.crimson.withOpacity(0.18)
+          ..color = AppColors.crimson.withValues(alpha: 0.18)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
     final shadowPath =
         Path()
@@ -607,7 +615,7 @@ class _MilkBagPainter extends CustomPainter {
     // Inner highlight (left edge lighter band)
     final highlightPaint =
         Paint()
-          ..color = AppColors.chalk.withOpacity(0.05)
+          ..color = AppColors.chalk.withValues(alpha: 0.05)
           ..style = PaintingStyle.fill;
     final highlightPath =
         Path()
@@ -631,9 +639,9 @@ class _MilkBagPainter extends CustomPainter {
         Paint()
           ..shader = LinearGradient(
             colors: [
-              AppColors.mauve.withOpacity(0.0),
+              AppColors.mauve.withValues(alpha: 0.0),
               AppColors.mauve,
-              AppColors.mauve.withOpacity(0.0),
+              AppColors.mauve.withValues(alpha: 0.0),
             ],
           ).createShader(Rect.fromLTWH(w * 0.07, h * 0.21, w * 0.86, h * 0.04));
     canvas.drawRRect(
