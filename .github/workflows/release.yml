@@ -1,0 +1,104 @@
+name: Build & Release APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.0.0)'
+        required: true
+        default: '1.0.0'
+      release_notes:
+        description: 'Release notes'
+        required: false
+        default: 'Initial release of A Milk Filter.'
+
+jobs:
+  build-release:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.2'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib/
+
+      - name: Run static analysis
+        run: flutter analyze --fatal-infos
+
+      - name: Run unit tests
+        run: flutter test
+
+      - name: Build split APKs (arm64-v8a, armeabi-v7a, x86_64)
+        run: flutter build apk --release --split-per-abi
+
+      - name: Rename APKs with version suffix
+        run: |
+          cd build/app/outputs/flutter-apk
+          for f in app-*-release.apk; do
+            arch=$(echo "$f" | sed 's/app-\(.*\)-release.apk/\1/')
+            mv "$f" "a-milk-filter-${arch}-v${{ github.event.inputs.version }}.apk"
+          done
+          ls -lh *.apk
+
+      - name: Upload APKs as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apks-v${{ github.event.inputs.version }}
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 30
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: "A Milk Filter v${{ github.event.inputs.version }}"
+          files: build/app/outputs/flutter-apk/*.apk
+          body: |
+            ## A Milk Filter v${{ github.event.inputs.version }}
+
+            ${{ github.event.inputs.release_notes }}
+
+            ---
+
+            ### Download
+
+            | File | Architecture | Devices |
+            |---|---|---|
+            | `arm64-v8a` | ARM 64-bit | Modern Android (recommended) |
+            | `armeabi-v7a` | ARM 32-bit | Older devices |
+            | `x86_64` | x86 64-bit | Emulators |
+
+            ---
+
+            ### Installation
+
+            1. Download the APK matching your device architecture
+            2. Enable **Install from unknown sources** in Android Settings
+            3. Open the downloaded APK to install
+
+            ---
+            *Built with Flutter 3.22 · Inspired by "Milk Outside a Bag of Milk Outside a Bag of Milk"*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
