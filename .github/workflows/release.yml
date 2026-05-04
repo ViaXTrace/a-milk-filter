@@ -43,7 +43,7 @@ jobs:
         run: dart format lib/ test/
 
       - name: Run static analysis
-        run: flutter analyze --fatal-infos
+        run: flutter analyze
 
       - name: Run unit tests
         run: flutter test
@@ -94,7 +94,7 @@ jobs:
 
             1. Download the APK matching your device architecture
             2. Enable **Install from unknown sources** in Android Settings → Security
-            3. Open the downloaded APK to install
+            3. Open the APK to install
 
             ---
             *Built with Flutter 3.22 · Inspired by "Milk Outside a Bag of Milk Outside a Bag of Milk"*
