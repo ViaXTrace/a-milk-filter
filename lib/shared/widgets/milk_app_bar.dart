@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:a_milk_filter/core/theme/app_colors.dart';
 
-/// Custom AppBar with a crimson→mauve gradient accent rule at the bottom.
 class MilkAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MilkAppBar({
     super.key,
@@ -16,7 +15,7 @@ class MilkAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 2);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1);
 
   @override
   Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(
@@ -30,33 +29,60 @@ class MilkAppBar extends StatelessWidget implements PreferredSizeWidget {
         AppBar(
           backgroundColor: AppColors.abyss,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, size: 16),
-            color: AppColors.chalk,
-            onPressed: () => Navigator.of(context).maybePop(),
+          titleSpacing: 0,
+          leading: GestureDetector(
+            onTap: () => Navigator.of(context).maybePop(),
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.crypt,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 14,
+                color: AppColors.chalk,
+              ),
+            ),
           ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
-              if (subtitle != null)
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  letterSpacing: 0.8,
+                  fontSize: 14,
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 1),
                 Text(
                   subtitle!,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.mauve,
-                    letterSpacing: 0.4,
+                    color: AppColors.mauve.withOpacity(0.8),
+                    letterSpacing: 0.5,
+                    fontSize: 9,
                   ),
                 ),
+              ],
             ],
           ),
           actions: actions,
         ),
-        // Accent gradient rule
+        // Accent gradient rule — 1px, extends edge to edge
         Container(
-          height: 2,
+          height: 1,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.crimson, AppColors.mauve, Colors.transparent],
+              colors: [
+                AppColors.crimson,
+                AppColors.mauve,
+                Colors.transparent,
+              ],
+              stops: [0.0, 0.5, 1.0],
             ),
           ),
         ),

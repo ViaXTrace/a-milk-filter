@@ -13,27 +13,43 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final _picker = ImagePicker();
   bool _isPickingFile = false;
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
+  bool _isHoveringDrop = false;
+
+  late final AnimationController _glowController;
+  late final Animation<double> _glowAnim;
+  late final AnimationController _fadeInController;
+  late final Animation<double> _fadeInAnim;
 
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
+
+    _glowController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 2800),
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    _glowAnim = CurvedAnimation(
+      parent: _glowController,
+      curve: Curves.easeInOut,
+    );
+
+    _fadeInController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+    _fadeInAnim = CurvedAnimation(
+      parent: _fadeInController,
+      curve: Curves.easeOut,
     );
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _glowController.dispose();
+    _fadeInController.dispose();
     super.dispose();
   }
 
@@ -43,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       final xFile = await _picker.pickImage(source: source);
       if (xFile != null && mounted) {
-        await Navigator.of(context).push(_fadeRoute(
+        await Navigator.of(context).push(_slideRoute(
           EditorScreen(imageFile: File(xFile.path)),
         ));
       }
@@ -52,40 +68,333 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  PageRoute<void> _fadeRoute(Widget page) => PageRouteBuilder(
+  PageRoute<void> _slideRoute(Widget page) => PageRouteBuilder(
     pageBuilder: (_, __, ___) => page,
-    transitionDuration: const Duration(milliseconds: 380),
-    transitionsBuilder: (_, animation, __, child) => FadeTransition(
-      opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-      child: child,
-    ),
+    transitionDuration: const Duration(milliseconds: 420),
+    transitionsBuilder: (_, animation, __, child) {
+      final tween = Tween<Offset>(
+        begin: const Offset(0, 0.06),
+        end: Offset.zero,
+      ).chain(CurveTween(curve: Curves.easeOutCubic));
+      return FadeTransition(
+        opacity: animation,
+        child: SlideTransition(position: animation.drive(tween), child: child),
+      );
+    },
   );
 
   @override
   Widget build(BuildContext context) {
+    final screenH = MediaQuery.sizeOf(context).height;
     return Scaffold(
       backgroundColor: AppColors.void_,
       body: Stack(
         children: [
-          const ScanlineOverlay(),
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _Header(),
-                Expanded(child: _DropZone(
-                  pulseAnimation: _pulseAnimation,
-                  onTap: () => _pickImage(ImageSource.gallery),
-                  isLoading: _isPickingFile,
-                )),
-                _SourceRow(
-                  onGallery: () => _pickImage(ImageSource.gallery),
-                  onCamera: () => _pickImage(ImageSource.camera),
-                  enabled: !_isPickingFile,
+          const ScanlineOverlay(opacity: 0.03),
+          // Radial glow at top-right (brand atmosphere)
+          Positioned(
+            top: -screenH * 0.18,
+            right: -80,
+            child: AnimatedBuilder(
+              animation: _glowAnim,
+              builder: (_, __) => Container(
+                width: 340,
+                height: 340,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.mauve.withOpacity(0.09 + _glowAnim.value * 0.05),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
-                _Footer(),
+              ),
+            ),
+          ),
+          // Radial glow bottom-left
+          Positioned(
+            bottom: -screenH * 0.1,
+            left: -60,
+            child: AnimatedBuilder(
+              animation: _glowAnim,
+              builder: (_, __) => Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.crimson.withOpacity(0.08 + _glowAnim.value * 0.06),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: FadeTransition(
+              opacity: _fadeInAnim,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeader(context),
+                  Expanded(child: _buildDropZone(context)),
+                  _buildActionRow(context),
+                  _buildFooter(context),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 36, 28, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Brand accent line
+                Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.crimson, AppColors.mauve],
+                        ),
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'IMAGE FILTER',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.ash,
+                        letterSpacing: 1.4,
+                        fontSize: 9,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontFamily: 'Courier New',
+                      fontWeight: FontWeight.w900,
+                      height: 0.92,
+                      letterSpacing: -1,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: 'A MILK\n',
+                        style: TextStyle(
+                          fontSize: 48,
+                          color: AppColors.chalk,
+                          shadows: [
+                            Shadow(
+                              color: AppColors.crimson.withOpacity(0.45),
+                              blurRadius: 32,
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'FILTER',
+                        style: TextStyle(
+                          fontSize: 48,
+                          color: AppColors.crimson,
+                          shadows: [
+                            Shadow(
+                              color: AppColors.crimson.withOpacity(0.5),
+                              blurRadius: 24,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'outside the bag',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.mauve.withOpacity(0.7),
+                    letterSpacing: 1.2,
+                    fontSize: 9,
+                  ),
+                ),
               ],
             ),
+          ),
+          // Palette swatches — visual brand stamp
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const SizedBox(height: 4),
+              _PaletteStamp(
+                colors: const [Color(0xFF000000), Color(0xFF660020), Color(0xFF890092)],
+                label: 'I',
+              ),
+              const SizedBox(height: 6),
+              _PaletteStamp(
+                colors: const [Color(0xFF000000), Color(0xFF5C2420), Color(0xFFCB2B2B)],
+                label: 'II',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropZone(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+      child: GestureDetector(
+        onTap: () => _pickImage(ImageSource.gallery),
+        onTapDown: (_) => setState(() => _isHoveringDrop = true),
+        onTapUp: (_) => setState(() => _isHoveringDrop = false),
+        onTapCancel: () => setState(() => _isHoveringDrop = false),
+        child: AnimatedBuilder(
+          animation: _glowAnim,
+          builder: (context, child) {
+            final glow = _isHoveringDrop ? 1.0 : _glowAnim.value;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              decoration: BoxDecoration(
+                color: AppColors.abyss,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.crimson.withOpacity(0.18 + glow * 0.22),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.crimson.withOpacity(0.06 + glow * 0.08),
+                    blurRadius: 40,
+                    spreadRadius: 2,
+                  ),
+                  BoxShadow(
+                    color: AppColors.mauve.withOpacity(0.03 + glow * 0.04),
+                    blurRadius: 60,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: child,
+            );
+          },
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: _isPickingFile
+                    ? const _LoadingIndicator(key: ValueKey('loading'))
+                    : const _MilkBagIcon(key: ValueKey('icon'), size: 96),
+              ),
+              const SizedBox(height: 28),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
+                decoration: BoxDecoration(
+                  color: AppColors.crypt,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Text(
+                  'TAP TO SELECT IMAGE',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    letterSpacing: 1.2,
+                    color: AppColors.dust,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'PNG  ·  JPG  ·  JPEG',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppColors.ash,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionRow(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _SourceButton(
+              icon: Icons.photo_library_outlined,
+              label: 'GALLERY',
+              onTap: _isPickingFile ? null : () => _pickImage(ImageSource.gallery),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _SourceButton(
+              icon: Icons.camera_alt_outlined,
+              label: 'CAMERA',
+              onTap: _isPickingFile ? null : () => _pickImage(ImageSource.camera),
+              accent: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 20, 28, 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'v1.0.0 · ViaXTrace',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.ember,
+              letterSpacing: 0.4,
+            ),
+          ),
+          Row(
+            children: List.generate(3, (i) => Padding(
+              padding: EdgeInsets.only(left: i > 0 ? 4 : 0),
+              child: Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: i == 0
+                      ? AppColors.crimson
+                      : AppColors.crimson.withOpacity(0.3 - i * 0.1),
+                  boxShadow: i == 0
+                      ? [BoxShadow(
+                          color: AppColors.crimson.withOpacity(0.7),
+                          blurRadius: 6,
+                        )]
+                      : null,
+                ),
+              ),
+            )),
           ),
         ],
       ),
@@ -93,193 +402,137 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-class _Header extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(width: 36, height: 2, color: AppColors.crimson),
-        const SizedBox(height: 14),
-        Text(
-          'A MILK\nFILTER',
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-            shadows: [Shadow(
-              color: AppColors.crimson.withOpacity(0.5),
-              blurRadius: 24,
-            )],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'OUTSIDE THE BAG',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: AppColors.mauve,
-            letterSpacing: 0.7,
-          ),
-        ),
-      ],
-    ),
-  );
-}
+// ── Palette Stamp widget ─────────────────────────────────────────────────────
 
-class _DropZone extends StatelessWidget {
-  const _DropZone({
-    required this.pulseAnimation,
-    required this.onTap,
-    required this.isLoading,
-  });
-
-  final Animation<double> pulseAnimation;
-  final VoidCallback onTap;
-  final bool isLoading;
+class _PaletteStamp extends StatelessWidget {
+  const _PaletteStamp({required this.colors, required this.label});
+  final List<Color> colors;
+  final String label;
 
   @override
-  Widget build(BuildContext context) => Center(
-    child: GestureDetector(
-      onTap: onTap,
-      child: AnimatedBuilder(
-        animation: pulseAnimation,
-        builder: (context, child) => Container(
-          width: 216,
-          height: 216,
-          decoration: BoxDecoration(
-            color: AppColors.abyss,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: AppColors.crimson.withOpacity(pulseAnimation.value * 0.55),
-              width: 1,
-            ),
-            boxShadow: [BoxShadow(
-              color: AppColors.crimson.withOpacity(pulseAnimation.value * 0.12),
-              blurRadius: 32,
-            )],
-          ),
-          child: child,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            isLoading
-                ? const SizedBox(
-                    width: 20, height: 20,
-                    child: CircularProgressIndicator(
-                      color: AppColors.crimson, strokeWidth: 1.5,
-                    ),
-                  )
-                : const _MilkBagIcon(size: 68),
-            const SizedBox(height: 20),
-            Text(
-              'OPEN FILE',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                letterSpacing: 0.8,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              'PNG  ·  JPG  ·  JPEG',
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
-          ],
+  Widget build(BuildContext context) => Row(
+    children: [
+      Text(
+        'MILK $label',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: AppColors.ash,
+          fontSize: 8,
+          letterSpacing: 0.6,
         ),
       ),
-    ),
+      const SizedBox(width: 6),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(2),
+        child: Row(
+          children: colors
+              .map((c) => Container(width: 8, height: 22, color: c))
+              .toList(),
+        ),
+      ),
+    ],
   );
 }
 
-class _SourceRow extends StatelessWidget {
-  const _SourceRow({
-    required this.onGallery,
-    required this.onCamera,
-    required this.enabled,
+// ── Source button ─────────────────────────────────────────────────────────────
+
+class _SourceButton extends StatefulWidget {
+  const _SourceButton({
+    required this.icon,
+    required this.label,
+    this.onTap,
+    this.accent = false,
   });
-
-  final VoidCallback onGallery;
-  final VoidCallback onCamera;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-    child: Row(
-      children: [
-        Expanded(child: _SourceButton(
-          icon: Icons.photo_library_outlined,
-          label: 'GALLERY',
-          onTap: enabled ? onGallery : null,
-        )),
-        const SizedBox(width: 10),
-        Expanded(child: _SourceButton(
-          icon: Icons.camera_alt_outlined,
-          label: 'CAMERA',
-          onTap: enabled ? onCamera : null,
-        )),
-      ],
-    ),
-  );
-}
-
-class _SourceButton extends StatelessWidget {
-  const _SourceButton({required this.icon, required this.label, this.onTap});
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
+  final bool accent;
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      height: 44,
-      decoration: BoxDecoration(
-        color: AppColors.crypt,
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 14, color: AppColors.dust),
-          const SizedBox(width: 6),
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
-        ],
-      ),
-    ),
-  );
+  State<_SourceButton> createState() => _SourceButtonState();
 }
 
-class _Footer extends StatelessWidget {
+class _SourceButtonState extends State<_SourceButton> {
+  bool _pressed = false;
+
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('v1.0.0 · ViaXTrace',
-          style: Theme.of(context).textTheme.labelSmall),
-        Container(
-          width: 5, height: 5,
-          decoration: BoxDecoration(
-            color: AppColors.crimson,
-            borderRadius: BorderRadius.circular(1),
-            boxShadow: [BoxShadow(
-              color: AppColors.crimson.withOpacity(0.8), blurRadius: 6,
-            )],
+  Widget build(BuildContext context) {
+    final disabled = widget.onTap == null;
+    final bg = widget.accent ? AppColors.crimson : AppColors.crypt;
+    final border = widget.accent ? AppColors.crimson : AppColors.border;
+    final iconColor = widget.accent ? AppColors.chalk : AppColors.dust;
+    final labelColor = widget.accent ? AppColors.chalk : AppColors.dust;
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        height: 52,
+        decoration: BoxDecoration(
+          color: _pressed
+              ? (widget.accent ? AppColors.maroon : AppColors.vessel)
+              : bg,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: border, width: widget.accent ? 0 : 1),
+          boxShadow: widget.accent && !_pressed
+              ? [BoxShadow(
+                  color: AppColors.crimson.withOpacity(0.28),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                )]
+              : null,
+        ),
+        child: Opacity(
+          opacity: disabled ? 0.4 : 1.0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, size: 16, color: iconColor),
+              const SizedBox(width: 8),
+              Text(
+                widget.label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: labelColor,
+                  letterSpacing: 1.0,
+                  fontSize: 11,
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
+    );
+  }
+}
+
+// ── Loading indicator ─────────────────────────────────────────────────────────
+
+class _LoadingIndicator extends StatelessWidget {
+  const _LoadingIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(
+    width: 28,
+    height: 28,
+    child: CircularProgressIndicator(
+      color: AppColors.crimson,
+      strokeWidth: 1.5,
     ),
   );
 }
 
+// ── Milk Bag Icon ─────────────────────────────────────────────────────────────
+
 class _MilkBagIcon extends StatelessWidget {
-  const _MilkBagIcon({required this.size});
+  const _MilkBagIcon({super.key, required this.size});
   final double size;
 
   @override
   Widget build(BuildContext context) => SizedBox(
     width: size,
-    height: size * 1.15,
+    height: size * 1.2,
     child: CustomPaint(painter: _MilkBagPainter()),
   );
 }
@@ -290,49 +543,89 @@ class _MilkBagPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // Bag body
-    final bagPath = Path()
-      ..moveTo(w * 0.15, h * 0.26)
-      ..lineTo(w * 0.04, h * 0.94)
-      ..lineTo(w * 0.96, h * 0.94)
-      ..lineTo(w * 0.85, h * 0.26)
+    // Soft shadow beneath bag
+    final shadowPaint = Paint()
+      ..color = AppColors.crimson.withOpacity(0.18)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
+    final shadowPath = Path()
+      ..moveTo(w * 0.14, h * 0.28)
+      ..lineTo(w * 0.03, h * 0.95)
+      ..lineTo(w * 0.97, h * 0.95)
+      ..lineTo(w * 0.86, h * 0.28)
       ..close();
-    canvas.drawPath(bagPath, Paint()..color = AppColors.crimson.withOpacity(0.92));
+    canvas.drawPath(shadowPath, shadowPaint);
 
-    // Seal strip
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.08, h * 0.18, w * 0.84, h * 0.10),
-        const Radius.circular(2),
-      ),
-      Paint()..color = AppColors.maroon,
+    // Bag body
+    final bagPaint = Paint()
+      ..color = AppColors.crimson
+      ..style = PaintingStyle.fill;
+    final bagPath = Path()
+      ..moveTo(w * 0.14, h * 0.28)
+      ..lineTo(w * 0.03, h * 0.92)
+      ..quadraticBezierTo(w * 0.03, h * 0.96, w * 0.07, h * 0.96)
+      ..lineTo(w * 0.93, h * 0.96)
+      ..quadraticBezierTo(w * 0.97, h * 0.96, w * 0.97, h * 0.92)
+      ..lineTo(w * 0.86, h * 0.28)
+      ..close();
+    canvas.drawPath(bagPath, bagPaint);
+
+    // Inner highlight (left edge lighter band)
+    final highlightPaint = Paint()
+      ..color = AppColors.chalk.withOpacity(0.05)
+      ..style = PaintingStyle.fill;
+    final highlightPath = Path()
+      ..moveTo(w * 0.14, h * 0.28)
+      ..lineTo(w * 0.03, h * 0.92)
+      ..lineTo(w * 0.18, h * 0.92)
+      ..lineTo(w * 0.26, h * 0.28)
+      ..close();
+    canvas.drawPath(highlightPath, highlightPaint);
+
+    // Seal / top clamp
+    final sealPaint = Paint()..color = AppColors.maroon;
+    final sealRRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.07, h * 0.17, w * 0.86, h * 0.13),
+      const Radius.circular(3),
     );
+    canvas.drawRRect(sealRRect, sealPaint);
 
-    // Accent line on seal
+    // Accent stripe on seal
+    final stripeGradient = Paint()
+      ..shader = LinearGradient(
+        colors: [AppColors.mauve.withOpacity(0.0), AppColors.mauve, AppColors.mauve.withOpacity(0.0)],
+      ).createShader(Rect.fromLTWH(w * 0.07, h * 0.21, w * 0.86, h * 0.04));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.11, h * 0.20, w * 0.78, h * 0.04),
+        Rect.fromLTWH(w * 0.10, h * 0.21, w * 0.80, h * 0.04),
         const Radius.circular(1),
       ),
-      Paint()..color = AppColors.mauve.withOpacity(0.7),
+      stripeGradient,
     );
 
-    // Eyes (void squares)
-    final eyePaint = Paint()..color = AppColors.abyss;
-    final eyeW = w * 0.12;
-    final eyeH = w * 0.13;
-    canvas.drawRect(Rect.fromLTWH(w * 0.24, h * 0.53, eyeW, eyeH), eyePaint);
-    canvas.drawRect(Rect.fromLTWH(w * 0.60, h * 0.53, eyeW, eyeH), eyePaint);
-
-    // Subtle mouth
-    final mouthPath = Path()
-      ..moveTo(w * 0.34, h * 0.74)
-      ..quadraticBezierTo(w * 0.50, h * 0.80, w * 0.66, h * 0.74);
-    canvas.drawPath(mouthPath, Paint()
+    // Eyes — void squares with subtle border
+    final eyePaint = Paint()..color = AppColors.void_;
+    final eyeBorderPaint = Paint()
       ..color = AppColors.abyss
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round);
+      ..strokeWidth = 1;
+
+    final leftEye = Rect.fromLTWH(w * 0.22, h * 0.53, w * 0.18, h * 0.16);
+    final rightEye = Rect.fromLTWH(w * 0.60, h * 0.53, w * 0.18, h * 0.16);
+    canvas.drawRect(leftEye, eyePaint);
+    canvas.drawRect(rightEye, eyePaint);
+    canvas.drawRect(leftEye, eyeBorderPaint);
+    canvas.drawRect(rightEye, eyeBorderPaint);
+
+    // Subtle mouth curve
+    final mouthPaint = Paint()
+      ..color = AppColors.maroon
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+    final mouthPath = Path()
+      ..moveTo(w * 0.33, h * 0.76)
+      ..quadraticBezierTo(w * 0.50, h * 0.83, w * 0.67, h * 0.76);
+    canvas.drawPath(mouthPath, mouthPaint);
   }
 
   @override

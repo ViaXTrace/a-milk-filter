@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:a_milk_filter/core/theme/app_colors.dart';
 
-/// Dual-pane image comparison with a draggable vertical divider.
-/// The left pane shows the original; the right pane shows the filtered result.
+/// Full-screen before/after image comparison with a draggable divider.
+/// Left = filtered result, right = original.
 class BeforeAfterView extends StatefulWidget {
   const BeforeAfterView({
     super.key,
@@ -21,8 +21,37 @@ class BeforeAfterView extends StatefulWidget {
   State<BeforeAfterView> createState() => _BeforeAfterViewState();
 }
 
-class _BeforeAfterViewState extends State<BeforeAfterView> {
+class _BeforeAfterViewState extends State<BeforeAfterView>
+    with SingleTickerProviderStateMixin {
   double _split = 0.5;
+  bool _isDragging = false;
+
+  late final AnimationController _hintController;
+
+  @override
+  void initState() {
+    super.initState();
+    _hintController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+  }
+
+  @override
+  void didUpdateWidget(BeforeAfterView old) {
+    super.didUpdateWidget(old);
+    // When filtered result arrives, briefly animate the handle to hint
+    if (old.filteredBytes == null && widget.filteredBytes != null) {
+      _hintController.forward(from: 0);
+      _split = 0.5;
+    }
+  }
+
+  @override
+  void dispose() {
+    _hintController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,52 +62,81 @@ class _BeforeAfterViewState extends State<BeforeAfterView> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         return GestureDetector(
+          onHorizontalDragStart: hasFiltered
+              ? (_) => setState(() => _isDragging = true)
+              : null,
           onHorizontalDragUpdate: hasFiltered
               ? (d) => setState(() {
-                  _split = (_split + d.delta.dx / width).clamp(0.0, 1.0);
+                  _split = (_split + d.delta.dx / width).clamp(0.04, 0.96);
                 })
+              : null,
+          onHorizontalDragEnd: hasFiltered
+              ? (_) => setState(() => _isDragging = false)
               : null,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Original (full width, behind)
-              Image.file(widget.originalFile, fit: BoxFit.contain),
+              // ── Original (full, behind) ──────────────────────────────
+              _ImagePane(
+                child: Image.file(
+                  widget.originalFile,
+                  fit: BoxFit.contain,
+                ),
+              ),
 
-              // Filtered (clipped to left fraction)
+              // ── Filtered (clipped left) ──────────────────────────────
               if (hasFiltered)
                 ClipRect(
                   child: Align(
                     alignment: Alignment.centerLeft,
                     widthFactor: _split,
-                    child: Image.memory(
-                      filtered,
-                      fit: BoxFit.contain,
-                      width: width,
+                    child: _ImagePane(
+                      child: Image.memory(
+                        filtered,
+                        fit: BoxFit.contain,
+                        width: width,
+                      ),
                     ),
                   ),
                 ),
 
-              // Divider + handle
+              // ── Divider + Handle ─────────────────────────────────────
               if (hasFiltered)
                 Positioned(
-                  top: 0, bottom: 0,
-                  left: width * _split - 18,
-                  width: 36,
-                  child: _DividerHandle(),
+                  top: 0,
+                  bottom: 0,
+                  left: width * _split - 20,
+                  width: 40,
+                  child: _DividerHandle(isDragging: _isDragging),
                 ),
 
-              // Processing overlay
-              if (widget.isProcessing) _ProcessingOverlay(),
+              // ── Processing overlay ────────────────────────────────────
+              if (widget.isProcessing)
+                const _ProcessingOverlay(),
 
-              // Corner labels
-              Positioned(
-                top: 10, left: 10,
-                child: _PaneLabel(text: 'BEFORE'),
-              ),
+              // ── Corner labels ─────────────────────────────────────────
               if (hasFiltered)
                 Positioned(
-                  top: 10, right: 10,
-                  child: _PaneLabel(text: 'AFTER', highlight: true),
+                  top: 14,
+                  left: 14,
+                  child: _PaneLabel(text: 'AFTER', accent: true),
+                ),
+              Positioned(
+                top: 14,
+                right: 14,
+                child: _PaneLabel(
+                  text: 'BEFORE',
+                  accent: false,
+                ),
+              ),
+
+              // ── Drag hint (before filter is applied) ──────────────────
+              if (!hasFiltered && !widget.isProcessing)
+                const Positioned(
+                  bottom: 24,
+                  left: 0,
+                  right: 0,
+                  child: _EmptyHint(),
                 ),
             ],
           ),
@@ -88,48 +146,146 @@ class _BeforeAfterViewState extends State<BeforeAfterView> {
   }
 }
 
+class _ImagePane extends StatelessWidget {
+  const _ImagePane({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+    color: AppColors.abyss,
+    child: child,
+  );
+}
+
 class _DividerHandle extends StatelessWidget {
+  const _DividerHandle({required this.isDragging});
+  final bool isDragging;
+
   @override
   Widget build(BuildContext context) => Center(
     child: Stack(
       alignment: Alignment.center,
       children: [
-        Container(width: 1.5, height: double.infinity, color: AppColors.crimson),
-        Container(
-          width: 26, height: 26,
+        // Vertical rule
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: isDragging ? 2 : 1.5,
+          height: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.crimson,
-            borderRadius: BorderRadius.circular(2),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                AppColors.crimson.withOpacity(isDragging ? 0.9 : 0.6),
+                AppColors.crimson.withOpacity(isDragging ? 0.9 : 0.6),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.15, 0.85, 1.0],
+            ),
+          ),
+        ),
+
+        // Handle pill
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: isDragging ? 36 : 32,
+          height: isDragging ? 36 : 32,
+          decoration: BoxDecoration(
+            color: isDragging ? AppColors.crimson : AppColors.maroon,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isDragging ? AppColors.chalk.withOpacity(0.3) : AppColors.crimson,
+              width: 1.5,
+            ),
             boxShadow: [BoxShadow(
-              color: AppColors.crimson.withOpacity(0.5), blurRadius: 10,
+              color: AppColors.crimson.withOpacity(isDragging ? 0.5 : 0.3),
+              blurRadius: isDragging ? 18 : 10,
             )],
           ),
-          child: const Icon(Icons.unfold_more, color: AppColors.chalk, size: 13),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.chevron_left_rounded,
+                size: 12,
+                color: isDragging ? AppColors.chalk : AppColors.dust,
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 12,
+                color: isDragging ? AppColors.chalk : AppColors.dust,
+              ),
+            ],
+          ),
         ),
       ],
     ),
   );
 }
 
-class _ProcessingOverlay extends StatelessWidget {
+class _ProcessingOverlay extends StatefulWidget {
+  const _ProcessingOverlay();
+
+  @override
+  State<_ProcessingOverlay> createState() => _ProcessingOverlayState();
+}
+
+class _ProcessingOverlayState extends State<_ProcessingOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => ColoredBox(
-    color: AppColors.void_.withOpacity(0.72),
+    color: AppColors.void_.withOpacity(0.78),
     child: Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
-            width: 22, height: 22,
-            child: CircularProgressIndicator(
-              color: AppColors.crimson, strokeWidth: 1.5,
+          AnimatedBuilder(
+            animation: _anim,
+            builder: (_, __) => SizedBox(
+              width: 36,
+              height: 36,
+              child: CircularProgressIndicator(
+                color: AppColors.crimson.withOpacity(0.6 + _anim.value * 0.4),
+                strokeWidth: 1.5,
+              ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             'PROCESSING',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: AppColors.dust, letterSpacing: 0.6,
+              color: AppColors.dust,
+              letterSpacing: 2,
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'mapping palette · pixel by pixel',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: AppColors.ash,
+              letterSpacing: 0.4,
+              fontSize: 9,
             ),
           ),
         ],
@@ -139,25 +295,60 @@ class _ProcessingOverlay extends StatelessWidget {
 }
 
 class _PaneLabel extends StatelessWidget {
-  const _PaneLabel({required this.text, this.highlight = false});
+  const _PaneLabel({required this.text, required this.accent});
   final String text;
-  final bool highlight;
+  final bool accent;
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
-      color: highlight ? AppColors.maroon : AppColors.abyss.withOpacity(0.85),
-      borderRadius: BorderRadius.circular(2),
+      color: accent
+          ? AppColors.crimson.withOpacity(0.85)
+          : AppColors.abyss.withOpacity(0.75),
+      borderRadius: BorderRadius.circular(5),
       border: Border.all(
-        color: highlight ? AppColors.crimson : AppColors.border,
+        color: accent ? AppColors.crimson : AppColors.border,
+        width: accent ? 0 : 1,
       ),
+      boxShadow: accent
+          ? [BoxShadow(
+              color: AppColors.crimson.withOpacity(0.3),
+              blurRadius: 8,
+            )]
+          : null,
     ),
     child: Text(
       text,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: highlight ? AppColors.chalk : AppColors.dust,
-        letterSpacing: 0.4,
+        color: accent ? AppColors.chalk : AppColors.dust,
+        letterSpacing: 0.8,
+        fontSize: 9,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
+}
+
+class _EmptyHint extends StatelessWidget {
+  const _EmptyHint();
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.abyss.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        'Apply filter to compare',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: AppColors.ash,
+          letterSpacing: 0.4,
+          fontSize: 10,
+        ),
       ),
     ),
   );
