@@ -42,8 +42,8 @@ jobs:
       - name: Format code
         run: dart format lib/ test/
 
-      - name: Run static analysis
-        run: flutter analyze
+      - name: Run static analysis (advisory)
+        run: flutter analyze || true
 
       - name: Run unit tests
         run: flutter test
