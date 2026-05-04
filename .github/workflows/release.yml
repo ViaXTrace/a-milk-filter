@@ -39,8 +39,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed lib/
+      - name: Format code
+        run: dart format lib/ test/
 
       - name: Run static analysis
         run: flutter analyze --fatal-infos
@@ -82,18 +82,18 @@ jobs:
 
             ### Download
 
-            | File | Architecture | Devices |
-            |---|---|---|
-            | `arm64-v8a` | ARM 64-bit | Modern Android (recommended) |
-            | `armeabi-v7a` | ARM 32-bit | Older devices |
-            | `x86_64` | x86 64-bit | Emulators |
+            | Architecture | Devices |
+            |---|---|
+            | `arm64-v8a` | Modern Android 64-bit (recommended) |
+            | `armeabi-v7a` | Older ARM 32-bit devices |
+            | `x86_64` | Emulators / x86 devices |
 
             ---
 
             ### Installation
 
             1. Download the APK matching your device architecture
-            2. Enable **Install from unknown sources** in Android Settings
+            2. Enable **Install from unknown sources** in Android Settings → Security
             3. Open the downloaded APK to install
 
             ---
