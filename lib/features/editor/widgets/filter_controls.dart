@@ -21,8 +21,8 @@ class FilterControls extends StatelessWidget {
     mainAxisSize: MainAxisSize.min,
     children: [
       // ── Section: Palette Mode ───────────────────────────────────────────
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+      const Padding(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
         child: _SectionLabel(label: 'PALETTE MODE'),
       ),
       Padding(
@@ -41,8 +41,8 @@ class FilterControls extends StatelessWidget {
       ),
 
       // ── Section: Effects ────────────────────────────────────────────────
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      const Padding(
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
         child: _SectionLabel(label: 'EFFECTS'),
       ),
       const SizedBox(height: 10),
@@ -396,9 +396,9 @@ class _CompressionSectionState extends State<_CompressionSection> {
               active
                   ? Container(
                     padding: const EdgeInsets.fromLTRB(12, 10, 16, 12),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.abyss,
-                      borderRadius: const BorderRadius.vertical(
+                      borderRadius: BorderRadius.vertical(
                         bottom: Radius.circular(10),
                       ),
                       border: Border(

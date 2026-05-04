@@ -111,12 +111,12 @@ class _BeforeAfterViewState extends State<BeforeAfterView>
 
               // ── Corner labels ─────────────────────────────────────────
               if (hasFiltered)
-                Positioned(
+                const Positioned(
                   top: 14,
                   left: 14,
                   child: _PaneLabel(text: 'AFTER', accent: true),
                 ),
-              Positioned(
+              const Positioned(
                 top: 14,
                 right: 14,
                 child: _PaneLabel(text: 'BEFORE', accent: false),

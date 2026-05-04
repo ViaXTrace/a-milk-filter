@@ -243,21 +243,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
           // Palette swatches — visual brand stamp
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               _PaletteStamp(
-                colors: const [
+                colors: [
                   Color(0xFF000000),
                   Color(0xFF660020),
                   Color(0xFF890092),
                 ],
                 label: 'I',
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               _PaletteStamp(
-                colors: const [
+                colors: [
                   Color(0xFF000000),
                   Color(0xFF5C2420),
                   Color(0xFFCB2B2B),
