@@ -6,8 +6,10 @@ import 'package:a_milk_filter/features/home/home_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Lock to portrait — the split-view UX is portrait-first.
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
+  // Transparent status bar + navigation bar for edge-to-edge immersion.
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

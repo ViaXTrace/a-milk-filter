@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:a_milk_filter/core/filter/filter_options.dart';
@@ -29,30 +31,33 @@ class _EditorScreenState extends State<EditorScreen>
   Uint8List? _filteredBytes;
   String? _errorMessage;
 
-  late final AnimationController _panelController;
-  late final Animation<double> _panelAnim;
+  late final AnimationController _panelCtrl;
+  late final Animation<Offset> _panelSlide;
+  late final Animation<double> _panelFade;
 
   @override
   void initState() {
     super.initState();
-    _panelController = AnimationController(
+    _panelCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 340),
     )..forward();
-    _panelAnim = CurvedAnimation(
-      parent: _panelController,
-      curve: Curves.easeOutCubic,
-    );
+    _panelSlide = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _panelCtrl, curve: Curves.easeOutCubic));
+    _panelFade = CurvedAnimation(parent: _panelCtrl, curve: Curves.easeOut);
   }
 
   @override
   void dispose() {
-    _panelController.dispose();
+    _panelCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _applyFilter() async {
     if (_state == _ProcessState.processing) return;
+    HapticFeedback.lightImpact();
     setState(() {
       _state = _ProcessState.processing;
       _filteredBytes = null;
@@ -60,16 +65,14 @@ class _EditorScreenState extends State<EditorScreen>
     });
     try {
       final sourceBytes = await widget.imageFile.readAsBytes();
-      final payload = FilterPayload(
-        sourceBytes: sourceBytes,
-        options: _options,
-      );
+      final payload = FilterPayload(sourceBytes: sourceBytes, options: _options);
       final result = await compute(applyFilter, payload);
       if (mounted) {
         setState(() {
           _filteredBytes = result;
           _state = _ProcessState.done;
         });
+        HapticFeedback.mediumImpact();
       }
     } on FilterException catch (e) {
       if (mounted) {
@@ -88,17 +91,25 @@ class _EditorScreenState extends State<EditorScreen>
     }
   }
 
-  Future<void> _saveImage() async {
+  Future<void> _saveToGallery() async {
     final bytes = _filteredBytes;
     if (bytes == null) return;
     try {
-      final dir = await getApplicationDocumentsDirectory();
+      final hasAccess = await Gal.hasAccess(toAlbum: true);
+      if (!hasAccess) {
+        final granted = await Gal.requestAccess(toAlbum: true);
+        if (!granted && mounted) {
+          _showSnack('Gallery access denied.');
+          return;
+        }
+      }
+      final dir = await getTemporaryDirectory();
       final ts = DateTime.now().millisecondsSinceEpoch;
       final file = File('${dir.path}/milk_filter_$ts.png');
       await file.writeAsBytes(bytes);
-      if (mounted) {
-        _showSnack('Saved to documents ·  milk_filter_$ts.png', success: true);
-      }
+      await Gal.putImage(file.path, album: 'A Milk Filter');
+      await file.delete();
+      if (mounted) _showSnack('Saved to gallery.', success: true);
     } catch (e) {
       if (mounted) _showSnack('Save failed: $e');
     }
@@ -111,9 +122,10 @@ class _EditorScreenState extends State<EditorScreen>
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/milk_filter_share.png');
       await file.writeAsBytes(bytes);
-      await Share.shareXFiles([
-        XFile(file.path, mimeType: 'image/png'),
-      ], text: 'Filtered with A Milk Filter — Outside the Bag');
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'image/png')],
+        text: 'Filtered with A Milk Filter — Outside the Bag',
+      );
     } catch (e) {
       if (mounted) _showSnack('Share failed: $e');
     }
@@ -127,7 +139,7 @@ class _EditorScreenState extends State<EditorScreen>
           children: [
             Icon(
               success ? Icons.check_circle_outline : Icons.error_outline,
-              size: 14,
+              size: 13,
               color: success ? AppColors.mauve : AppColors.blood,
             ),
             const SizedBox(width: 8),
@@ -144,13 +156,6 @@ class _EditorScreenState extends State<EditorScreen>
             ),
           ],
         ),
-        backgroundColor: AppColors.crypt,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: AppColors.border),
-        ),
-        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -164,11 +169,12 @@ class _EditorScreenState extends State<EditorScreen>
         subtitle: _options.palette.name.toLowerCase(),
       ),
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          const ScanlineOverlay(opacity: 0.025),
+          const Positioned.fill(child: ScanlineOverlay(opacity: 0.025)),
           Column(
             children: [
-              // ── Image viewport (flex to fill remaining space) ──────────
+              // ── Image viewport ───────────────────────────────────────
               Expanded(
                 child: BeforeAfterView(
                   originalFile: widget.imageFile,
@@ -177,21 +183,20 @@ class _EditorScreenState extends State<EditorScreen>
                 ),
               ),
 
-              // ── Control Panel ─────────────────────────────────────────
+              // ── Control panel ────────────────────────────────────────
               SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.08),
-                  end: Offset.zero,
-                ).animate(_panelAnim),
+                position: _panelSlide,
                 child: FadeTransition(
-                  opacity: _panelAnim,
+                  opacity: _panelFade,
                   child: _ControlPanel(
                     options: _options,
                     state: _state,
                     errorMessage: _errorMessage,
-                    onOptionsChanged: (o) => setState(() => _options = o),
+                    onOptionsChanged: (o) {
+                      setState(() => _options = o);
+                    },
                     onApply: _applyFilter,
-                    onSave: _saveImage,
+                    onSave: _saveToGallery,
                     onShare: _shareImage,
                   ),
                 ),
@@ -204,7 +209,7 @@ class _EditorScreenState extends State<EditorScreen>
   }
 }
 
-// ── Control Panel ─────────────────────────────────────────────────────────────
+// ── Control panel ─────────────────────────────────────────────────────────────
 
 class _ControlPanel extends StatelessWidget {
   const _ControlPanel({
@@ -226,68 +231,43 @@ class _ControlPanel extends StatelessWidget {
   final VoidCallback onShare;
 
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
-      color: AppColors.abyss,
-      border: Border(top: BorderSide(color: AppColors.divider, width: 1)),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Error banner
-        if (state == _ProcessState.error && errorMessage != null)
-          _ErrorBanner(message: errorMessage!),
-
-        // Filter controls
-        FilterControls(
-          options: options,
-          onChanged: onOptionsChanged,
-          enabled: state != _ProcessState.processing,
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.abyss,
+        border: Border(
+          top: BorderSide(color: AppColors.divider, width: 1),
         ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Error banner
+          if (state == _ProcessState.error && errorMessage != null)
+            _ErrorBanner(message: errorMessage!),
 
-        // ── Action row ──────────────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-          child: Row(
-            children: [
-              // Primary apply button
-              Expanded(child: _ApplyButton(state: state, onPressed: onApply)),
-
-              // Save / Share — only after filter is applied
-              AnimatedSize(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                child:
-                    state == _ProcessState.done
-                        ? Row(
-                          children: [
-                            const SizedBox(width: 10),
-                            _ActionIconButton(
-                              icon: Icons.save_alt_rounded,
-                              label: 'SAVE',
-                              onTap: onSave,
-                            ),
-                            const SizedBox(width: 8),
-                            _ActionIconButton(
-                              icon: Icons.ios_share_rounded,
-                              label: 'SHARE',
-                              onTap: onShare,
-                              accent: true,
-                            ),
-                          ],
-                        )
-                        : const SizedBox.shrink(),
-              ),
-            ],
+          // Filter controls
+          FilterControls(
+            options: options,
+            onChanged: onOptionsChanged,
+            enabled: state != _ProcessState.processing,
           ),
-        ),
-      ],
-    ),
-  );
+
+          // Action bar
+          _ActionBar(
+            state: state,
+            onApply: onApply,
+            onSave: onSave,
+            onShare: onShare,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-// ── Error Banner ──────────────────────────────────────────────────────────────
+// ── Error banner ──────────────────────────────────────────────────────────────
 
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.message});
@@ -298,14 +278,14 @@ class _ErrorBanner extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     decoration: BoxDecoration(
-      color: AppColors.blood.withOpacity(0.10),
+      color: AppColors.blood.withOpacity(0.09),
       border: Border(
-        bottom: BorderSide(color: AppColors.blood.withOpacity(0.3)),
+        bottom: BorderSide(color: AppColors.blood.withOpacity(0.28)),
       ),
     ),
     child: Row(
       children: [
-        const Icon(Icons.error_outline, size: 12, color: AppColors.blood),
+        const Icon(Icons.error_outline_rounded, size: 12, color: AppColors.blood),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -315,6 +295,8 @@ class _ErrorBanner extends StatelessWidget {
               letterSpacing: 0.3,
               fontSize: 9,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -322,7 +304,61 @@ class _ErrorBanner extends StatelessWidget {
   );
 }
 
-// ── Apply Button ──────────────────────────────────────────────────────────────
+// ── Action bar ────────────────────────────────────────────────────────────────
+
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.state,
+    required this.onApply,
+    required this.onSave,
+    required this.onShare,
+  });
+
+  final _ProcessState state;
+  final VoidCallback onApply;
+  final VoidCallback onSave;
+  final VoidCallback onShare;
+
+  @override
+  Widget build(BuildContext context) {
+    final done = state == _ProcessState.done;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+      child: Row(
+        children: [
+          Expanded(child: _ApplyButton(state: state, onPressed: onApply)),
+          // Save / Share — only visible after filter applied
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            child: done
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(width: 10),
+                      _IconAction(
+                        icon: Icons.save_alt_rounded,
+                        label: 'SAVE',
+                        onTap: onSave,
+                      ),
+                      const SizedBox(width: 8),
+                      _IconAction(
+                        icon: Icons.ios_share_rounded,
+                        label: 'SHARE',
+                        onTap: onShare,
+                        accent: true,
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Apply button ──────────────────────────────────────────────────────────────
 
 class _ApplyButton extends StatefulWidget {
   const _ApplyButton({required this.state, required this.onPressed});
@@ -341,37 +377,33 @@ class _ApplyButtonState extends State<_ApplyButton> {
     final processing = widget.state == _ProcessState.processing;
     final done = widget.state == _ProcessState.done;
 
-    return GestureDetector(
-      onTap: processing ? null : widget.onPressed,
-      onTapDown: processing ? null : (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        height: 52,
-        decoration: BoxDecoration(
-          color:
-              _pressed
-                  ? AppColors.maroon
-                  : processing
-                  ? AppColors.maroon
-                  : AppColors.crimson,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow:
-              processing || _pressed
-                  ? null
-                  : [
+    return Semantics(
+      button: true,
+      label: processing ? 'Processing' : done ? 'Reapply filter' : 'Apply filter',
+      child: GestureDetector(
+        onTap: processing ? null : widget.onPressed,
+        onTapDown: processing ? null : (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          height: 52,
+          decoration: BoxDecoration(
+            color: _pressed || processing ? AppColors.maroon : AppColors.crimson,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: processing || _pressed
+                ? null
+                : [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.3),
-                      blurRadius: 16,
+                      color: AppColors.crimson.withOpacity(0.32),
+                      blurRadius: 18,
                       offset: const Offset(0, 3),
                     ),
                   ],
-        ),
-        child: Center(
-          child:
-              processing
-                  ? Row(
+          ),
+          child: Center(
+            child: processing
+                ? Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(
@@ -387,91 +419,95 @@ class _ApplyButtonState extends State<_ApplyButton> {
                         'PROCESSING…',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: AppColors.dust,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.4,
                           fontSize: 11,
                         ),
                       ),
                     ],
                   )
-                  : Text(
+                : Text(
                     done ? 'REAPPLY' : 'APPLY FILTER',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppColors.chalk,
-                      letterSpacing: 1.4,
-                      fontSize: 12,
+                      letterSpacing: 1.6,
+                      fontSize: 11,
                     ),
                   ),
+          ),
         ),
       ),
     );
   }
 }
 
-// ── Action Icon Button ────────────────────────────────────────────────────────
+// ── Icon action button ────────────────────────────────────────────────────────
 
-class _ActionIconButton extends StatefulWidget {
-  const _ActionIconButton({
+class _IconAction extends StatefulWidget {
+  const _IconAction({
     required this.icon,
     required this.label,
     required this.onTap,
     this.accent = false,
   });
+
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final bool accent;
 
   @override
-  State<_ActionIconButton> createState() => _ActionIconButtonState();
+  State<_IconAction> createState() => _IconActionState();
 }
 
-class _ActionIconButtonState extends State<_ActionIconButton> {
+class _IconActionState extends State<_IconAction> {
   bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        width: 58,
-        height: 52,
-        decoration: BoxDecoration(
-          color:
-              _pressed
-                  ? AppColors.vessel
-                  : widget.accent
-                  ? AppColors.haze
-                  : AppColors.crypt,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color:
-                widget.accent
-                    ? AppColors.mauve.withOpacity(0.4)
-                    : AppColors.border,
+    return Semantics(
+      button: true,
+      label: widget.label,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 110),
+          width: 58,
+          height: 52,
+          decoration: BoxDecoration(
+            color: _pressed
+                ? AppColors.vessel
+                : widget.accent
+                    ? AppColors.haze
+                    : AppColors.crypt,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: widget.accent
+                  ? AppColors.mauve.withOpacity(0.45)
+                  : AppColors.border,
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              widget.icon,
-              size: 16,
-              color: widget.accent ? AppColors.mauve : AppColors.chalk,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              widget.label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: widget.accent ? AppColors.mauve : AppColors.dust,
-                fontSize: 8,
-                letterSpacing: 0.6,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                widget.icon,
+                size: 15,
+                color: widget.accent ? AppColors.mauve : AppColors.chalk,
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                widget.label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: widget.accent ? AppColors.mauve : AppColors.dust,
+                  fontSize: 7,
+                  letterSpacing: 0.7,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

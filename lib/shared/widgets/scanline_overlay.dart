@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 
-/// Renders a subtle horizontal scanline pattern over its parent.
-/// Pointer events pass through. Uses RepaintBoundary to isolate repaints.
+/// Renders a CRT-style horizontal scanline texture.
+///
+/// Usage inside a [Stack]:
+///   Positioned.fill(child: ScanlineOverlay(opacity: 0.03))
+///
+/// Pointer events pass through. [RepaintBoundary] isolates repaints from
+/// the rest of the widget tree.
 class ScanlineOverlay extends StatelessWidget {
-  const ScanlineOverlay({super.key, this.opacity = 0.045});
+  const ScanlineOverlay({super.key, this.opacity = 0.04});
   final double opacity;
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
-    child: Positioned.fill(
-      child: RepaintBoundary(
-        child: CustomPaint(painter: _ScanlinePainter(opacity: opacity)),
+    child: RepaintBoundary(
+      child: CustomPaint(
+        size: Size.infinite,
+        painter: _ScanlinePainter(opacity: opacity),
       ),
     ),
   );
@@ -22,14 +28,13 @@ class _ScanlinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = Colors.black.withOpacity(opacity)
-          ..style = PaintingStyle.fill;
+    final paint = Paint()
+      ..color = Colors.black.withOpacity(opacity)
+      ..style = PaintingStyle.fill;
     double y = 0;
     while (y < size.height) {
-      canvas.drawRect(Rect.fromLTWH(0, y, size.width, 2), paint);
-      y += 4;
+      canvas.drawRect(Rect.fromLTWH(0, y, size.width, 1.5), paint);
+      y += 3.5;
     }
   }
 

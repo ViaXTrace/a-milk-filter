@@ -2,70 +2,69 @@
 
 Flutter Android app that applies the visual palette of *Milk Outside a Bag of Milk* to any photo. Pixel-by-pixel brightness mapping to a curated 3-tone color palette.
 
+## Run & Operate
+
+```bash
+flutter pub get
+flutter run                  # Android device / emulator required
+flutter build apk --release
+```
+
+No required env vars. GitHub remote: `https://github.com/ViaXTrace/a-milk-filter`
+
 ## Stack
 
-- **Language**: Dart 3.x
-- **Framework**: Flutter 3.x (Android target)
+- **Language**: Dart 3.x / Flutter 3.x (Android target, minSdk 21)
 - **Build**: Gradle + Flutter Gradle plugin
-- **Package manager**: pub (`flutter pub get`)
+- **Key packages**: `image` (pixel filter), `image_picker`, `gal` (gallery save), `share_plus`
 
-## Architecture
+## Where things live
 
 ```
 lib/
 ├── core/
-│   ├── filter/           # Isolate-safe filter engine (no Flutter deps)
-│   │   ├── milk_filter.dart     — compute() entry point, FilterPayload
-│   │   ├── milk_palette.dart    — sealed MilkPalette hierarchy, band resolution
-│   │   └── filter_options.dart  — immutable FilterOptions value object
-│   └── theme/            # Design system tokens
-│       ├── app_colors.dart      — all color constants (void/abyss/crimson/mauve…)
-│       ├── app_theme.dart       — ThemeData factory
-│       └── app_typography.dart  — Courier New monospace text theme
+│   ├── filter/       milk_filter.dart · milk_palette.dart · filter_options.dart
+│   └── theme/        app_colors.dart · app_theme.dart · app_typography.dart
 ├── features/
-│   ├── home/             — HomeScreen: brand hero, drop zone, source buttons
-│   └── editor/
-│       ├── editor_screen.dart          — orchestrates filter + state machine
-│       └── widgets/
-│           ├── before_after_view.dart  — draggable split comparison view
-│           └── filter_controls.dart   — palette picker, toggles, compression slider
-├── shared/widgets/
-│   ├── milk_app_bar.dart     — custom AppBar with gradient accent rule
-│   └── scanline_overlay.dart — CRT scanline texture (IgnorePointer, RepaintBoundary)
-└── main.dart             — edge-to-edge setup, theme, HomeScreen
+│   ├── home/         home_screen.dart
+│   └── editor/       editor_screen.dart · widgets/{before_after_view, filter_controls}.dart
+├── shared/widgets/   milk_app_bar.dart · scanline_overlay.dart
+└── main.dart
 ```
 
 ## Filter Algorithm
 
-Brightness = (R + G + B) / 3 (arithmetic mean, no gamma correction — matches original Python)
+Brightness = (R + G + B) / 3 — arithmetic mean, no gamma correction.
 
 **Milk I**: void #000000 · crimson #660020 · mauve #890092  
 **Milk II**: void #000000 · rust #5C2420 · blood #CB2B2B
 
-Pointillism mode = 70% primary / 30% secondary at boundary bands (stochastic dithering).  
+Pointillism = 70 % primary / 30 % secondary stochastic dithering at band boundaries.  
 Optional JPEG pre-pass: `img.encodeJpg(quality: 100 - q)` before palette mapping.
 
-## UI Design System
+## Architecture decisions
 
-- **Background hierarchy**: void_ → abyss → crypt → vessel (deepening layers)
-- **Radius**: 10px standard, 24px pill, 5px label
-- **Touch targets**: minimum 52dp height
-- **Spacing**: 8pt grid, 20–28px horizontal margins
-- **Typography**: Courier New monospace throughout, 8–48px range
+- `compute()` isolate for filter — UI thread never blocked during pixel mapping
+- `ScanlineOverlay` is a pure `IgnorePointer > RepaintBoundary > CustomPaint` — callers wrap in `Positioned.fill` inside their own Stack
+- `gal` package used for gallery saves (replaces documents-directory workaround)
+- `GestureDetector` + `AnimatedContainer` over `InkWell` — pixel-precise press states
+- `CupertinoPageTransitionsBuilder` on Android — smoother slide transitions
 
-## Key Design Decisions
+## Product
 
-- `SystemUiMode.edgeToEdge` for true edge-to-edge immersive feel
-- `CupertinoPageTransitionsBuilder` for fluid navigation on Android
-- `AnimatedContainer` + `GestureDetector` over `InkWell` for pixel-precise press states
-- `compute()` isolate for filter — never blocks UI thread
-- `RepaintBoundary` on scanline overlay — isolated from main widget tree repaints
-- Before/After divider uses circular handle (chevron icons) with drag state feedback
+- Pick photo from gallery or camera
+- Apply Milk I or Milk II palette filter (pixel-by-pixel brightness mapping)
+- Pointillism toggle (stochastic dithering) and JPEG compression pre-pass
+- Before/After split-screen comparison with draggable divider
+- Save to device gallery or share via system share sheet
 
-## Building
+## User preferences
 
-```bash
-flutter pub get
-flutter run                 # Android device/emulator required
-flutter build apk --release
-```
+- Monospace (Courier New) typography throughout — aesthetic constraint, not a bug
+- `withOpacity()` kept for Flutter ≤ 3.26 compatibility (upgrade path: `withValues(alpha:)`)
+
+## Gotchas
+
+- Filter runs in an isolate via `compute()` — no Flutter imports allowed in `core/filter/`
+- `gal` requires `android:requestLegacyExternalStorage="true"` on API ≤ 29
+- `ScanlineOverlay` must be wrapped in `Positioned.fill` when used inside a Stack

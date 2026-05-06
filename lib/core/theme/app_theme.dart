@@ -57,7 +57,7 @@ abstract final class AppTheme {
           fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        minimumSize: const Size(double.infinity, 52),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
@@ -73,21 +73,23 @@ abstract final class AppTheme {
           fontWeight: FontWeight.w700,
           letterSpacing: 0.8,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        minimumSize: const Size(double.infinity, 52),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
       ),
     ),
-    sliderTheme: const SliderThemeData(
+    sliderTheme: SliderThemeData(
       activeTrackColor: AppColors.crimson,
       inactiveTrackColor: AppColors.crypt,
       thumbColor: AppColors.crimson,
-      overlayColor: Color(0x18660020),
+      overlayColor: AppColors.crimson.withOpacity(0.10),
       trackHeight: 2,
-      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
       valueIndicatorColor: AppColors.maroon,
-      valueIndicatorTextStyle: TextStyle(
+      showValueIndicator: ShowValueIndicator.always,
+      valueIndicatorTextStyle: const TextStyle(
         fontFamily: 'Courier New',
         fontSize: 10,
         color: AppColors.chalk,
@@ -96,6 +98,7 @@ abstract final class AppTheme {
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppColors.crypt,
       behavior: SnackBarBehavior.floating,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: const BorderSide(color: AppColors.border),
@@ -108,16 +111,14 @@ abstract final class AppTheme {
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
-        (states) =>
-            states.contains(WidgetState.selected)
-                ? AppColors.chalk
-                : AppColors.ash,
+        (states) => states.contains(WidgetState.selected)
+            ? AppColors.chalk
+            : AppColors.ash,
       ),
       trackColor: WidgetStateProperty.resolveWith(
-        (states) =>
-            states.contains(WidgetState.selected)
-                ? AppColors.crimson
-                : AppColors.vessel,
+        (states) => states.contains(WidgetState.selected)
+            ? AppColors.crimson
+            : AppColors.vessel,
       ),
       trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
     ),
