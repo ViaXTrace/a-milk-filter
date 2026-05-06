@@ -45,6 +45,7 @@ class FilterControls extends StatelessWidget {
 
         // ── Effects ──────────────────────────────────────────────────────
         const _SectionLabel(label: 'EFFECTS', top: 14, bottom: 10),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _ToggleRow(
@@ -58,7 +59,25 @@ class FilterControls extends StatelessWidget {
                 : null,
           ),
         ),
+
         const SizedBox(height: 8),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: _ToggleRow(
+            icon: Icons.blur_on_rounded,
+            label: 'Film Grain',
+            sublabel: 'CRT phosphor noise — ±10 luminance per pixel',
+            value: options.filmGrain,
+            accentColor: AppColors.blood,
+            onChanged: enabled
+                ? (v) => onChanged(options.copyWith(filmGrain: v))
+                : null,
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _CompressionSection(
@@ -430,7 +449,6 @@ class _CompressionSection extends StatelessWidget {
             ],
           ),
         ),
-        // Quality slider — expands/collapses
         AnimatedSize(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,

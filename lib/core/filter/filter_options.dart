@@ -6,6 +6,7 @@ final class FilterOptions {
     required this.palette,
     this.pointillism = false,
     this.compressionQuality,
+    this.filmGrain = false,
   });
 
   final MilkPalette palette;
@@ -17,20 +18,27 @@ final class FilterOptions {
   /// before palette mapping. Lower values introduce DCT block artifacts.
   final int? compressionQuality;
 
+  /// Adds ±10 luminance noise per pixel before palette lookup, simulating
+  /// the CRT phosphor grain texture of the original game.
+  final bool filmGrain;
+
   FilterOptions copyWith({
     MilkPalette? palette,
     bool? pointillism,
     int? compressionQuality,
     bool clearCompression = false,
+    bool? filmGrain,
   }) => FilterOptions(
     palette: palette ?? this.palette,
     pointillism: pointillism ?? this.pointillism,
     compressionQuality:
         clearCompression ? null : compressionQuality ?? this.compressionQuality,
+    filmGrain: filmGrain ?? this.filmGrain,
   );
 
   @override
   String toString() =>
       'FilterOptions(palette: ${palette.name}, '
-      'pointillism: $pointillism, compression: $compressionQuality)';
+      'pointillism: $pointillism, compression: $compressionQuality, '
+      'grain: $filmGrain)';
 }

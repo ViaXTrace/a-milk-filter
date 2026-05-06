@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:a_milk_filter/core/filter/filter_options.dart';
@@ -7,17 +8,17 @@ import 'package:a_milk_filter/core/filter/filter_options.dart';
 /// Invoke via [compute] or [Isolate.run]:
 ///   final result = await compute(applyFilter, FilterPayload(...));
 ///
-/// The algorithm is a faithful Dart port of the original Python implementation.
-/// Brightness is computed as the arithmetic mean of R, G, B channels
-/// (no gamma correction), matching the original behaviour exactly.
+/// Pipeline (each pass is optional):
+///   1. JPEG pre-pass  — DCT artifacts interact with band boundaries
+///   2. Film grain     — ±10 luminance noise before palette lookup
+///   3. Palette map    — brightness → Milk palette color (+ optional dither)
 Future<Uint8List> applyFilter(FilterPayload payload) async {
   var image = img.decodeImage(payload.sourceBytes);
   if (image == null) {
     throw const FilterException('Could not decode source image.');
   }
 
-  // Optional JPEG pre-pass — DCT compression artifacts interact with
-  // palette band boundaries, creating a distinctive degraded aesthetic.
+  // ── Pass 1: JPEG compression pre-pass ─────────────────────────────────
   final q = payload.options.compressionQuality;
   if (q != null) {
     final compressed = img.encodeJpg(image, quality: 100 - q);
@@ -29,11 +30,28 @@ Future<Uint8List> applyFilter(FilterPayload payload) async {
 
   final stochastic = payload.options.pointillism;
   final palette = payload.options.palette;
+  final grain = payload.options.filmGrain;
+  // One RNG per call — isolate-safe, no shared state.
+  final rng = grain ? math.Random() : null;
 
+  // ── Pass 2 + 3: Optional grain → palette map ──────────────────────────
   for (int y = 0; y < image.height; y++) {
     for (int x = 0; x < image.width; x++) {
       final pixel = image.getPixel(x, y);
-      final brightness = (pixel.r + pixel.g + pixel.b) / 3.0;
+      double r = pixel.r.toDouble();
+      double g = pixel.g.toDouble();
+      double b = pixel.b.toDouble();
+
+      // Film grain: identical luminance offset for all three channels
+      // so hue is preserved while brightness shifts — matches CRT phosphor noise.
+      if (rng != null) {
+        final n = (rng.nextDouble() - 0.5) * 20.0; // ±10 range
+        r = (r + n).clamp(0.0, 255.0);
+        g = (g + n).clamp(0.0, 255.0);
+        b = (b + n).clamp(0.0, 255.0);
+      }
+
+      final brightness = (r + g + b) / 3.0;
       final argb = palette.resolve(brightness, stochastic: stochastic);
       image.setPixelRgb(
         x,

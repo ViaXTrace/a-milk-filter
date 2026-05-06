@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,19 +32,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     _glowController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3200),
+      duration: const Duration(milliseconds: 4200),
     )..repeat(reverse: true);
     _glowAnim = CurvedAnimation(parent: _glowController, curve: Curves.easeInOut);
 
     _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 680),
+      duration: const Duration(milliseconds: 800),
     )..forward();
     _entryAnim = CurvedAnimation(parent: _entryController, curve: Curves.easeOutCubic);
 
     _bagController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 4000),
+      duration: const Duration(milliseconds: 5000),
     )..repeat(reverse: true);
     _bagAnim = CurvedAnimation(parent: _bagController, curve: Curves.easeInOut);
   }
@@ -72,10 +73,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   PageRoute<void> _buildRoute(Widget page) => PageRouteBuilder(
     pageBuilder: (_, __, ___) => page,
-    transitionDuration: const Duration(milliseconds: 400),
+    transitionDuration: const Duration(milliseconds: 450),
     transitionsBuilder: (_, animation, __, child) {
       final offset = Tween<Offset>(
-        begin: const Offset(0, 0.05),
+        begin: const Offset(0, 0.04),
         end: Offset.zero,
       ).chain(CurveTween(curve: Curves.easeOutCubic));
       return FadeTransition(
@@ -95,30 +96,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Scanline texture ────────────────────────────────────────────
-          const Positioned.fill(child: ScanlineOverlay(opacity: 0.032)),
+          // ── CRT scanline texture ──────────────────────────────────────────
+          const Positioned.fill(child: ScanlineOverlay(opacity: 0.04)),
 
-          // ── Atmospheric glows ───────────────────────────────────────────
+          // ── Atmospheric glow — mauve, top right ───────────────────────────
           _AtmosphericGlow(
             controller: _glowAnim,
-            top: -screenH * 0.15,
-            right: -90.0,
+            top: -screenH * 0.10,
+            right: -80.0,
             color: AppColors.mauve,
-            size: 360,
-            minOpacity: 0.07,
-            opacityRange: 0.06,
-          ),
-          _AtmosphericGlow(
-            controller: _glowAnim,
-            bottom: -screenH * 0.08,
-            left: -70.0,
-            color: AppColors.crimson,
-            size: 300,
-            minOpacity: 0.06,
-            opacityRange: 0.07,
+            size: 460,
+            minOpacity: 0.11,
+            opacityRange: 0.09,
           ),
 
-          // ── Main content ────────────────────────────────────────────────
+          // ── Atmospheric glow — crimson, bottom left ───────────────────────
+          _AtmosphericGlow(
+            controller: _glowAnim,
+            bottom: -screenH * 0.04,
+            left: -60.0,
+            color: AppColors.crimson,
+            size: 380,
+            minOpacity: 0.10,
+            opacityRange: 0.10,
+          ),
+
+          // ── Center ambient bleed — very soft ─────────────────────────────
+          _AtmosphericGlow(
+            controller: _glowAnim,
+            top: screenH * 0.30,
+            left: -screenH * 0.15,
+            color: AppColors.mauve,
+            size: 700,
+            minOpacity: 0.022,
+            opacityRange: 0.028,
+          ),
+
+          // ── Main content ─────────────────────────────────────────────────
           SafeArea(
             child: FadeTransition(
               opacity: _entryAnim,
@@ -126,7 +140,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _Header(),
-                  _PaletteStrip(),
                   Expanded(
                     child: _DropZone(
                       glowAnim: _glowAnim,
@@ -211,7 +224,7 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(28, 40, 28, 0),
+      padding: const EdgeInsets.fromLTRB(28, 44, 28, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -230,12 +243,12 @@ class _TitleBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Accent eyebrow
+        // Eyebrow — game reference, not generic label
         Row(
           children: [
             Container(
-              width: 22,
-              height: 1.5,
+              width: 20,
+              height: 1,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [AppColors.crimson, AppColors.mauve],
@@ -245,35 +258,39 @@ class _TitleBlock extends StatelessWidget {
             ),
             const SizedBox(width: 7),
             Text(
-              'IMAGE  FILTER',
+              'OUTSIDE THE BAG',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: AppColors.ash,
-                letterSpacing: 2.0,
-                fontSize: 8,
+                letterSpacing: 2.2,
+                fontSize: 7,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 14),
-        // Main wordmark
+        const SizedBox(height: 12),
+        // Wordmark — dominant visual element
         RichText(
           text: TextSpan(
             style: const TextStyle(
               fontFamily: 'Courier New',
               fontWeight: FontWeight.w900,
-              height: 0.9,
-              letterSpacing: -0.5,
+              height: 0.88,
+              letterSpacing: -1.0,
             ),
             children: [
               TextSpan(
                 text: 'A MILK\n',
                 style: TextStyle(
-                  fontSize: 46,
+                  fontSize: 52,
                   color: AppColors.chalk,
                   shadows: [
                     Shadow(
-                      color: AppColors.crimson.withValues(alpha: 0.5),
-                      blurRadius: 28,
+                      color: AppColors.crimson.withValues(alpha: 0.55),
+                      blurRadius: 40,
+                    ),
+                    Shadow(
+                      color: AppColors.mauve.withValues(alpha: 0.20),
+                      blurRadius: 70,
                     ),
                   ],
                 ),
@@ -281,12 +298,16 @@ class _TitleBlock extends StatelessWidget {
               TextSpan(
                 text: 'FILTER',
                 style: TextStyle(
-                  fontSize: 46,
+                  fontSize: 52,
                   color: AppColors.crimson,
                   shadows: [
                     Shadow(
-                      color: AppColors.crimson.withValues(alpha: 0.6),
-                      blurRadius: 22,
+                      color: AppColors.crimson.withValues(alpha: 0.70),
+                      blurRadius: 32,
+                    ),
+                    Shadow(
+                      color: AppColors.crimson.withValues(alpha: 0.30),
+                      blurRadius: 64,
                     ),
                   ],
                 ),
@@ -298,8 +319,8 @@ class _TitleBlock extends StatelessWidget {
         Text(
           'outside the bag of milk',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: AppColors.mauve.withValues(alpha: 0.65),
-            letterSpacing: 1.0,
+            color: AppColors.mauve.withValues(alpha: 0.55),
+            letterSpacing: 1.2,
             fontSize: 8,
           ),
         ),
@@ -316,7 +337,7 @@ class _PaletteStamps extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        SizedBox(height: 6),
+        SizedBox(height: 4),
         _PaletteStamp(
           label: 'MILK I',
           colors: [Color(0xFF000000), Color(0xFF660020), Color(0xFF890092)],
@@ -350,10 +371,10 @@ class _PaletteStamp extends StatelessWidget {
       ),
       const SizedBox(width: 6),
       ClipRRect(
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(3),
         child: Row(
           children: colors
-              .map((c) => Container(width: 9, height: 24, color: c))
+              .map((c) => Container(width: 10, height: 28, color: c))
               .toList(),
         ),
       ),
@@ -361,33 +382,7 @@ class _PaletteStamp extends StatelessWidget {
   );
 }
 
-// ── Palette strip (decorative ticker) ─────────────────────────────────────────
-
-class _PaletteStrip extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-      child: Container(
-        height: 1,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.transparent,
-              AppColors.crimson,
-              AppColors.mauve,
-              AppColors.crimson,
-              Colors.transparent,
-            ],
-            stops: [0.0, 0.2, 0.5, 0.8, 1.0],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Drop zone ─────────────────────────────────────────────────────────────────
+// ── Drop zone — glassmorphic card ─────────────────────────────────────────────
 
 class _DropZone extends StatelessWidget {
   const _DropZone({
@@ -409,7 +404,7 @@ class _DropZone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
       child: Semantics(
         button: true,
         label: 'Select image from gallery',
@@ -423,47 +418,115 @@ class _DropZone extends StatelessWidget {
             builder: (context, child) {
               final pulse = isPressed ? 1.0 : glowAnim.value;
               return AnimatedContainer(
-                duration: const Duration(milliseconds: 140),
+                duration: const Duration(milliseconds: 150),
                 decoration: BoxDecoration(
-                  color: isPressed ? AppColors.crypt : AppColors.abyss,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(22),
                   border: Border.all(
                     color: AppColors.crimson.withValues(
-                      alpha: isPressed ? 0.55 : 0.16 + pulse * 0.24,
+                      alpha: isPressed ? 0.65 : 0.22 + pulse * 0.28,
                     ),
-                    width: isPressed ? 1.5 : 1,
+                    width: isPressed ? 1.5 : 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.crimson.withValues(alpha: 0.05 + pulse * 0.09),
-                      blurRadius: 36,
-                      spreadRadius: 2,
+                      color: AppColors.crimson.withValues(
+                        alpha: isPressed ? 0.18 : 0.06 + pulse * 0.12,
+                      ),
+                      blurRadius: 48,
+                      spreadRadius: 4,
                     ),
                     BoxShadow(
-                      color: AppColors.mauve.withValues(alpha: 0.03 + pulse * 0.05),
-                      blurRadius: 56,
-                      spreadRadius: 4,
+                      color: AppColors.mauve.withValues(
+                        alpha: isPressed ? 0.10 : 0.03 + pulse * 0.07,
+                      ),
+                      blurRadius: 80,
+                      spreadRadius: 8,
                     ),
                   ],
                 ),
-                child: child,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(21),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      decoration: BoxDecoration(
+                        color: isPressed
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.white.withValues(alpha: 0.020),
+                        borderRadius: BorderRadius.circular(21),
+                      ),
+                      child: child,
+                    ),
+                  ),
+                ),
               );
             },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Stack(
               children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  switchInCurve: Curves.easeOut,
-                  switchOutCurve: Curves.easeIn,
-                  child: isLoading
-                      ? const _SpinnerWidget(key: ValueKey('spinner'))
-                      : _MilkBagWidget(key: const ValueKey('bag'), floatAnim: bagAnim),
+                // Top rim highlight — glass edge
+                Positioned(
+                  top: 0,
+                  left: 40,
+                  right: 40,
+                  height: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          Colors.white.withValues(alpha: 0.14),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 24),
-                _DropZoneLabel(),
-                const SizedBox(height: 12),
-                _SupportedFormats(),
+                // Bottom-right ambient corner
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  width: 120,
+                  height: 120,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                        bottomRight: Radius.circular(21),
+                      ),
+                      gradient: RadialGradient(
+                        center: Alignment.bottomRight,
+                        radius: 1,
+                        colors: [
+                          AppColors.mauve.withValues(alpha: 0.08),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Main content
+                SizedBox.expand(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        switchInCurve: Curves.easeOut,
+                        switchOutCurve: Curves.easeIn,
+                        child: isLoading
+                            ? const _SpinnerWidget(key: ValueKey('spinner'))
+                            : _MilkBagWidget(
+                                key: const ValueKey('bag'),
+                                floatAnim: bagAnim,
+                              ),
+                      ),
+                      const SizedBox(height: 28),
+                      _DropZoneLabel(),
+                      const SizedBox(height: 12),
+                      _SupportedFormats(),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -478,8 +541,8 @@ class _SpinnerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const SizedBox(
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     child: CircularProgressIndicator(
       color: AppColors.crimson,
       strokeWidth: 1.5,
@@ -495,12 +558,12 @@ class _MilkBagWidget extends StatelessWidget {
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: floatAnim,
     builder: (_, child) => Transform.translate(
-      offset: Offset(0, -4 + floatAnim.value * 8),
+      offset: Offset(0, -6 + floatAnim.value * 12),
       child: child,
     ),
     child: const SizedBox(
-      width: 90,
-      height: 112,
+      width: 108,
+      height: 134,
       child: CustomPaint(painter: _MilkBagPainter()),
     ),
   );
@@ -509,16 +572,24 @@ class _MilkBagWidget extends StatelessWidget {
 class _DropZoneLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 9),
     decoration: BoxDecoration(
-      color: AppColors.crypt,
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: AppColors.border),
+      color: AppColors.void_.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(28),
+      border: Border.all(
+        color: AppColors.crimson.withValues(alpha: 0.30),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.crimson.withValues(alpha: 0.12),
+          blurRadius: 20,
+        ),
+      ],
     ),
     child: Text(
       'TAP TO SELECT IMAGE',
       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-        letterSpacing: 1.4,
+        letterSpacing: 1.6,
         color: AppColors.dust,
         fontSize: 10,
       ),
@@ -532,7 +603,7 @@ class _SupportedFormats extends StatelessWidget {
     'PNG  ·  JPG  ·  JPEG  ·  HEIC',
     style: Theme.of(context).textTheme.labelSmall?.copyWith(
       color: AppColors.ash,
-      letterSpacing: 1.0,
+      letterSpacing: 1.2,
       fontSize: 8,
     ),
   );
@@ -554,7 +625,7 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
       child: Row(
         children: [
           Expanded(
@@ -602,8 +673,6 @@ class _SourceButtonState extends State<_SourceButton> {
   @override
   Widget build(BuildContext context) {
     final disabled = widget.onTap == null;
-    final bg = widget.accent ? AppColors.crimson : AppColors.crypt;
-    final pressedBg = widget.accent ? AppColors.maroon : AppColors.vessel;
 
     return Semantics(
       button: true,
@@ -614,46 +683,119 @@ class _SourceButtonState extends State<_SourceButton> {
         onTapDown: widget.onTap == null ? null : (_) => setState(() => _pressed = true),
         onTapUp: (_) => setState(() => _pressed = false),
         onTapCancel: () => setState(() => _pressed = false),
+        child: Opacity(
+          opacity: disabled ? 0.38 : 1.0,
+          child: widget.accent
+              ? _AccentGlassButton(icon: widget.icon, label: widget.label, pressed: _pressed)
+              : _GhostGlassButton(icon: widget.icon, label: widget.label, pressed: _pressed),
+        ),
+      ),
+    );
+  }
+}
+
+class _GhostGlassButton extends StatelessWidget {
+  const _GhostGlassButton({
+    required this.icon,
+    required this.label,
+    required this.pressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool pressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(13),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 110),
-          height: 52,
+          duration: const Duration(milliseconds: 120),
+          height: 54,
           decoration: BoxDecoration(
-            color: _pressed ? pressedBg : bg,
-            borderRadius: BorderRadius.circular(10),
-            border: widget.accent
+            color: pressed
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.white.withValues(alpha: 0.028),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: AppColors.border.withValues(alpha: pressed ? 0.6 : 0.9),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 15, color: AppColors.dust),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: AppColors.dust,
+                  letterSpacing: 1.3,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccentGlassButton extends StatelessWidget {
+  const _AccentGlassButton({
+    required this.icon,
+    required this.label,
+    required this.pressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool pressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(13),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          height: 54,
+          decoration: BoxDecoration(
+            color: pressed
+                ? AppColors.maroon.withValues(alpha: 0.90)
+                : AppColors.crimson.withValues(alpha: 0.82),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: AppColors.crimson.withValues(alpha: pressed ? 0.40 : 0.60),
+            ),
+            boxShadow: pressed
                 ? null
-                : Border.all(color: AppColors.border),
-            boxShadow: widget.accent && !_pressed && !disabled
-                ? [
+                : [
                     BoxShadow(
-                      color: AppColors.crimson.withValues(alpha: 0.30),
-                      blurRadius: 18,
+                      color: AppColors.crimson.withValues(alpha: 0.35),
+                      blurRadius: 20,
                       offset: const Offset(0, 4),
                     ),
-                  ]
-                : null,
+                  ],
           ),
-          child: Opacity(
-            opacity: disabled ? 0.38 : 1.0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  widget.icon,
-                  size: 15,
-                  color: widget.accent ? AppColors.chalk : AppColors.dust,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 15, color: AppColors.chalk),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: AppColors.chalk,
+                  letterSpacing: 1.3,
+                  fontSize: 10,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  widget.label,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: widget.accent ? AppColors.chalk : AppColors.dust,
-                    letterSpacing: 1.2,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -667,11 +809,11 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(28, 18, 28, 28),
+      padding: const EdgeInsets.fromLTRB(28, 16, 28, 26),
       child: Row(
         children: [
           Text(
-            'v1.0.0',
+            'v1.1.0',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: AppColors.ember,
               letterSpacing: 0.4,
@@ -742,8 +884,8 @@ class _MilkBagPainter extends CustomPainter {
     canvas.drawPath(
       _bagPath(w, h),
       Paint()
-        ..color = AppColors.crimson.withValues(alpha: 0.22)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16),
+        ..color = AppColors.crimson.withValues(alpha: 0.28)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20),
     );
 
     // Bag body fill
@@ -763,7 +905,7 @@ class _MilkBagPainter extends CustomPainter {
         ..lineTo(w * 0.27, h * 0.27)
         ..close(),
       Paint()
-        ..color = AppColors.chalk.withValues(alpha: 0.04)
+        ..color = AppColors.chalk.withValues(alpha: 0.05)
         ..style = PaintingStyle.fill,
     );
 
@@ -784,7 +926,7 @@ class _MilkBagPainter extends CustomPainter {
         ..shader = LinearGradient(
           colors: [
             AppColors.mauve.withValues(alpha: 0.0),
-            AppColors.mauve.withValues(alpha: 0.9),
+            AppColors.mauve.withValues(alpha: 0.95),
             AppColors.mauve.withValues(alpha: 0.0),
           ],
         ).createShader(Rect.fromLTWH(w * 0.12, h * 0.20, w * 0.76, h * 0.045)),
@@ -792,7 +934,7 @@ class _MilkBagPainter extends CustomPainter {
 
     // Fold crease lines on bag body
     final creasePaint = Paint()
-      ..color = AppColors.maroon.withValues(alpha: 0.4)
+      ..color = AppColors.maroon.withValues(alpha: 0.45)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8;
     canvas.drawLine(Offset(w * 0.35, h * 0.32), Offset(w * 0.27, h * 0.90), creasePaint);
@@ -826,7 +968,7 @@ class _MilkBagPainter extends CustomPainter {
       Paint()
         ..color = AppColors.maroon
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2
+        ..strokeWidth = 2.4
         ..strokeCap = StrokeCap.round,
     );
   }

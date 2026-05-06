@@ -47,6 +47,13 @@ class _EditorScreenState extends State<EditorScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _panelCtrl, curve: Curves.easeOutCubic));
     _panelFade = CurvedAnimation(parent: _panelCtrl, curve: Curves.easeOut);
+
+    // Auto-apply the filter immediately — no tap required.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 480), () {
+        if (mounted) _applyFilter();
+      });
+    });
   }
 
   @override
@@ -124,7 +131,7 @@ class _EditorScreenState extends State<EditorScreen>
       await file.writeAsBytes(bytes);
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'image/png')],
-        text: 'Filtered with A Milk Filter — Outside the Bag',
+        text: 'Filtered with A Milk Filter — outside the bag of milk',
       );
     } catch (e) {
       if (mounted) _showSnack('Share failed: $e');
@@ -243,18 +250,15 @@ class _ControlPanel extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Error banner
           if (state == _ProcessState.error && errorMessage != null)
             _ErrorBanner(message: errorMessage!),
 
-          // Filter controls
           FilterControls(
             options: options,
             onChanged: onOptionsChanged,
             enabled: state != _ProcessState.processing,
           ),
 
-          // Action bar
           _ActionBar(
             state: state,
             onApply: onApply,
@@ -327,7 +331,6 @@ class _ActionBar extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: _ApplyButton(state: state, onPressed: onApply)),
-          // Save / Share — only visible after filter applied
           AnimatedSize(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOutCubic,
