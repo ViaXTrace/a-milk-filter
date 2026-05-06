@@ -9,14 +9,14 @@
 ╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝╚══════╝ ╚═╝  ╚═╝    ╚═╝     ╚═╝╚══════╝╚═╝   ╚══════╝╚═╝  ╚═╝
 ```
 
-# A Milk Filter
+# A Milk Filter · v1.2.0
 
 **Transform your photos into the aesthetic of the unseen.**
 
 [![Platform](https://img.shields.io/badge/platform-Android-660020?style=flat-square&logo=android&logoColor=white)](https://developer.android.com)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-890092?style=flat-square&logo=flutter&logoColor=white)](https://flutter.dev)
 [![License](https://img.shields.io/badge/license-MIT-3D0019?style=flat-square)](LICENSE)
-[![Status](https://img.shields.io/badge/status-In%20Development-660020?style=flat-square)]()
+[![AdMob](https://img.shields.io/badge/AdMob-integrated-660020?style=flat-square&logo=google&logoColor=white)](https://admob.google.com)
 
 *Inspired by the visual aesthetic of "Milk Outside a Bag of Milk Outside a Bag of Milk"*
 

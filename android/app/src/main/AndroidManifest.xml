@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Network — required for AdMob -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Storage — legacy Android ≤ 9 (API 28) -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -18,6 +21,16 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:requestLegacyExternalStorage="true">
+
+        <!--
+          ╔══════════════════════════════════════════════════════════════╗
+          ║  AdMob App ID — replace with your real ID before publishing  ║
+          ║  Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX              ║
+          ╚══════════════════════════════════════════════════════════════╝
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
 
         <activity
             android:name=".MainActivity"

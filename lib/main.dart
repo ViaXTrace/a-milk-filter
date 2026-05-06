@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:a_milk_filter/core/theme/app_theme.dart';
 import 'package:a_milk_filter/features/home/home_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialise AdMob SDK — must complete before any ad is requested.
+  await MobileAds.instance.initialize();
 
   // Lock to portrait — the split-view UX is portrait-first.
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

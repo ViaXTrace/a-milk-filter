@@ -4,18 +4,23 @@ import 'package:flutter/material.dart';
 import 'package:a_milk_filter/core/theme/app_colors.dart';
 
 /// Draggable split-screen before/after image comparison.
-/// Left side = filtered result, right side = original.
+/// Left side = filtered result (AFTER), right side = original (BEFORE).
+/// Tapping the expand button on the filtered side calls [onFilteredTap].
 class BeforeAfterView extends StatefulWidget {
   const BeforeAfterView({
     super.key,
     required this.originalFile,
     required this.filteredBytes,
     required this.isProcessing,
+    this.onFilteredTap,
   });
 
   final File originalFile;
   final Uint8List? filteredBytes;
   final bool isProcessing;
+
+  /// Called when the user taps "expand" on the filtered (AFTER) pane.
+  final VoidCallback? onFilteredTap;
 
   @override
   State<BeforeAfterView> createState() => _BeforeAfterViewState();
@@ -134,6 +139,14 @@ class _BeforeAfterViewState extends State<BeforeAfterView>
                 child: _PaneLabel(text: 'BEFORE', accent: false),
               ),
 
+              // ── Expand button on filtered pane ────────────────────────
+              if (hasFiltered && widget.onFilteredTap != null)
+                Positioned(
+                  bottom: 14,
+                  left: 12,
+                  child: _ExpandButton(onTap: widget.onFilteredTap!),
+                ),
+
               // ── Empty state hint ──────────────────────────────────────
               if (!hasFiltered && !widget.isProcessing)
                 const Positioned(
@@ -160,6 +173,76 @@ class _ImagePane extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox.expand(
     child: ColoredBox(color: AppColors.abyss, child: child),
   );
+}
+
+// ── Expand button ─────────────────────────────────────────────────────────────
+
+class _ExpandButton extends StatefulWidget {
+  const _ExpandButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  State<_ExpandButton> createState() => _ExpandButtonState();
+}
+
+class _ExpandButtonState extends State<_ExpandButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'View full resolution',
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 110),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+          decoration: BoxDecoration(
+            color: _pressed
+                ? AppColors.crimson
+                : AppColors.abyss.withValues(alpha: 0.82),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _pressed
+                  ? AppColors.crimson
+                  : AppColors.crimson.withValues(alpha: 0.45),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.crimson.withValues(alpha: 0.22),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.open_in_full_rounded,
+                size: 11,
+                color: _pressed ? AppColors.chalk : AppColors.crimson,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                'EXPAND',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: _pressed ? AppColors.chalk : AppColors.crimson,
+                  fontSize: 8,
+                  letterSpacing: 0.8,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ── Divider handle ────────────────────────────────────────────────────────────

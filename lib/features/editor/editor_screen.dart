@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:a_milk_filter/core/filter/filter_options.dart';
@@ -11,8 +12,19 @@ import 'package:a_milk_filter/core/filter/milk_palette.dart';
 import 'package:a_milk_filter/core/theme/app_colors.dart';
 import 'package:a_milk_filter/features/editor/widgets/before_after_view.dart';
 import 'package:a_milk_filter/features/editor/widgets/filter_controls.dart';
+import 'package:a_milk_filter/features/viewer/image_viewer.dart';
 import 'package:a_milk_filter/shared/widgets/milk_app_bar.dart';
 import 'package:a_milk_filter/shared/widgets/scanline_overlay.dart';
+
+/// ╔══════════════════════════════════════════════════════════════════════════╗
+/// ║  Interstitial Ad Unit ID                                                ║
+/// ║  TEST (current):  ca-app-pub-3940256099942544/1033173712                ║
+/// ║  PRODUCTION:      replace with your real interstitial unit ID.          ║
+/// ╚══════════════════════════════════════════════════════════════════════════╝
+const String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
+
+/// How many saves trigger one interstitial. Set to 1 for every save.
+const int _savesPerInterstitial = 3;
 
 enum _ProcessState { idle, processing, done, error }
 
@@ -31,6 +43,11 @@ class _EditorScreenState extends State<EditorScreen>
   Uint8List? _filteredBytes;
   String? _errorMessage;
 
+  // ── Interstitial ad ───────────────────────────────────────────────────────
+  InterstitialAd? _interstitialAd;
+  int _saveCount = 0;
+
+  // ── Panel animation ───────────────────────────────────────────────────────
   late final AnimationController _panelCtrl;
   late final Animation<Offset> _panelSlide;
   late final Animation<double> _panelFade;
@@ -48,6 +65,8 @@ class _EditorScreenState extends State<EditorScreen>
     ).animate(CurvedAnimation(parent: _panelCtrl, curve: Curves.easeOutCubic));
     _panelFade = CurvedAnimation(parent: _panelCtrl, curve: Curves.easeOut);
 
+    _loadInterstitialAd();
+
     // Auto-apply the filter immediately — no tap required.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(milliseconds: 480), () {
@@ -59,8 +78,48 @@ class _EditorScreenState extends State<EditorScreen>
   @override
   void dispose() {
     _panelCtrl.dispose();
+    _interstitialAd?.dispose();
     super.dispose();
   }
+
+  // ── Interstitial lifecycle ────────────────────────────────────────────────
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: _interstitialAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (_) {
+              _interstitialAd?.dispose();
+              _interstitialAd = null;
+              _loadInterstitialAd();
+            },
+            onAdFailedToShowFullScreenContent: (ad, _) {
+              ad.dispose();
+              _interstitialAd = null;
+              _loadInterstitialAd();
+            },
+          );
+          _interstitialAd = ad;
+        },
+        onAdFailedToLoad: (_) {
+          _interstitialAd = null;
+        },
+      ),
+    );
+  }
+
+  void _maybeShowInterstitial() {
+    final ad = _interstitialAd;
+    if (ad != null) {
+      ad.show();
+      _interstitialAd = null;
+    }
+  }
+
+  // ── Filter ────────────────────────────────────────────────────────────────
 
   Future<void> _applyFilter() async {
     if (_state == _ProcessState.processing) return;
@@ -98,6 +157,8 @@ class _EditorScreenState extends State<EditorScreen>
     }
   }
 
+  // ── Save ──────────────────────────────────────────────────────────────────
+
   Future<void> _saveToGallery() async {
     final bytes = _filteredBytes;
     if (bytes == null) return;
@@ -116,11 +177,22 @@ class _EditorScreenState extends State<EditorScreen>
       await file.writeAsBytes(bytes);
       await Gal.putImage(file.path, album: 'A Milk Filter');
       await file.delete();
-      if (mounted) _showSnack('Saved to gallery.', success: true);
+
+      if (mounted) {
+        _showSnack('Saved to gallery.', success: true);
+        HapticFeedback.mediumImpact();
+
+        _saveCount++;
+        if (_saveCount % _savesPerInterstitial == 0) {
+          _maybeShowInterstitial();
+        }
+      }
     } catch (e) {
       if (mounted) _showSnack('Save failed: $e');
     }
   }
+
+  // ── Share ─────────────────────────────────────────────────────────────────
 
   Future<void> _shareImage() async {
     final bytes = _filteredBytes;
@@ -137,6 +209,28 @@ class _EditorScreenState extends State<EditorScreen>
       if (mounted) _showSnack('Share failed: $e');
     }
   }
+
+  // ── Full-screen viewer ────────────────────────────────────────────────────
+
+  void _openViewer() {
+    final bytes = _filteredBytes;
+    if (bytes == null) return;
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        pageBuilder: (_, __, ___) => ImageViewerScreen(
+          filteredBytes: bytes,
+          paletteName: _options.palette.name,
+        ),
+        transitionDuration: const Duration(milliseconds: 380),
+        transitionsBuilder: (_, animation, __, child) => FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  // ── Snack ─────────────────────────────────────────────────────────────────
 
   void _showSnack(String msg, {bool success = false}) {
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -187,6 +281,9 @@ class _EditorScreenState extends State<EditorScreen>
                   originalFile: widget.imageFile,
                   filteredBytes: _filteredBytes,
                   isProcessing: _state == _ProcessState.processing,
+                  onFilteredTap: _state == _ProcessState.done
+                      ? _openViewer
+                      : null,
                 ),
               ),
 

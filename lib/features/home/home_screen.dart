@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:a_milk_filter/core/theme/app_colors.dart';
 import 'package:a_milk_filter/features/editor/editor_screen.dart';
+import 'package:a_milk_filter/shared/widgets/banner_ad_widget.dart';
 import 'package:a_milk_filter/shared/widgets/scanline_overlay.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -177,6 +177,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
 
                   const SizedBox(height: 8),
+
+                  // ── Banner Ad ───────────────────────────────────────────
+                  const BannerAdWidget(),
                 ],
               ),
             ),
@@ -228,7 +231,6 @@ class _WordmarkBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Eyebrow
         Text(
           '— OUTSIDE THE BAG',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -238,8 +240,6 @@ class _WordmarkBlock extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-
-        // Main wordmark
         Text(
           'A MILK',
           style: TextStyle(
@@ -257,7 +257,6 @@ class _WordmarkBlock extends StatelessWidget {
             ],
           ),
         ),
-
         ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
             colors: [AppColors.crimson, Color(0xFF9B002A)],
@@ -274,8 +273,6 @@ class _WordmarkBlock extends StatelessWidget {
             ),
           ),
         ),
-
-        // Accent rule
         const SizedBox(height: 14),
         Container(
           height: 1,
@@ -320,7 +317,6 @@ class _HeroBag extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Glow corona beneath bag
           AnimatedBuilder(
             animation: floatAnim,
             builder: (_, __) => Container(
@@ -341,7 +337,6 @@ class _HeroBag extends StatelessWidget {
               ),
             ),
           ),
-          // The bag itself
           const SizedBox(
             width: 200,
             height: 248,
@@ -370,41 +365,37 @@ class _SelectCTA extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isLoading) return const SizedBox.shrink();
 
-    return Column(
-      children: [
-        AnimatedBuilder(
-          animation: pulseAnim,
-          builder: (_, child) => Opacity(
-            opacity: 0.55 + pulseAnim.value * 0.45,
-            child: child,
+    return AnimatedBuilder(
+      animation: pulseAnim,
+      builder: (_, child) => Opacity(
+        opacity: 0.55 + pulseAnim.value * 0.45,
+        child: child,
+      ),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 11),
+          decoration: BoxDecoration(
+            color: AppColors.crimson,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.crimson.withValues(alpha: 0.50),
+                blurRadius: 28,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          child: GestureDetector(
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 11),
-              decoration: BoxDecoration(
-                color: AppColors.crimson,
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.crimson.withValues(alpha: 0.50),
-                    blurRadius: 28,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Text(
-                'SELECT A PHOTO',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppColors.chalk,
-                  letterSpacing: 2.0,
-                  fontSize: 11,
-                ),
-              ),
+          child: Text(
+            'SELECT A PHOTO',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: AppColors.chalk,
+              letterSpacing: 2.0,
+              fontSize: 11,
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -428,7 +419,6 @@ class _BottomBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
       child: Column(
         children: [
-          // Thin separator with gradient
           Container(
             height: 1,
             margin: const EdgeInsets.only(bottom: 16),
@@ -447,7 +437,6 @@ class _BottomBar extends StatelessWidget {
 
           Row(
             children: [
-              // Gallery — ghost
               Expanded(
                 child: _BottomButton(
                   icon: Icons.photo_library_outlined,
@@ -457,7 +446,6 @@ class _BottomBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              // Camera — crimson
               Expanded(
                 child: _BottomButton(
                   icon: Icons.camera_alt_outlined,
@@ -471,11 +459,10 @@ class _BottomBar extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // Footer
           Row(
             children: [
               Text(
-                'v1.1.0',
+                'v1.2.0',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: AppColors.ember,
                   fontSize: 8,
@@ -597,7 +584,6 @@ class _MilkBagPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // Outer glow (shadow)
     canvas.drawPath(
       _bagPath(w, h),
       Paint()
@@ -605,7 +591,6 @@ class _MilkBagPainter extends CustomPainter {
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 28),
     );
 
-    // Bag body fill — slightly richer gradient feel
     final bagPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topLeft,
@@ -619,7 +604,6 @@ class _MilkBagPainter extends CustomPainter {
       ).createShader(Rect.fromLTWH(0, 0, w, h));
     canvas.drawPath(_bagPath(w, h), bagPaint);
 
-    // Left-edge highlight
     canvas.drawPath(
       Path()
         ..moveTo(w * 0.14, h * 0.27)
@@ -632,7 +616,6 @@ class _MilkBagPainter extends CustomPainter {
         ..style = PaintingStyle.fill,
     );
 
-    // Seal bar
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(w * 0.07, h * 0.16, w * 0.86, h * 0.13),
@@ -641,7 +624,6 @@ class _MilkBagPainter extends CustomPainter {
       Paint()..color = AppColors.maroon,
     );
 
-    // Mauve stripe on seal
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(w * 0.12, h * 0.20, w * 0.76, h * 0.045),
@@ -657,7 +639,6 @@ class _MilkBagPainter extends CustomPainter {
         ).createShader(Rect.fromLTWH(w * 0.12, h * 0.20, w * 0.76, h * 0.045)),
     );
 
-    // Fold crease lines
     final crease = Paint()
       ..color = AppColors.maroon.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
@@ -665,7 +646,6 @@ class _MilkBagPainter extends CustomPainter {
     canvas.drawLine(Offset(w * 0.35, h * 0.32), Offset(w * 0.27, h * 0.90), crease);
     canvas.drawLine(Offset(w * 0.65, h * 0.32), Offset(w * 0.73, h * 0.90), crease);
 
-    // Eyes
     final eyeFill = Paint()..color = AppColors.void_;
     final eyeStroke = Paint()
       ..color = AppColors.abyss
@@ -685,26 +665,34 @@ class _MilkBagPainter extends CustomPainter {
     canvas.drawRRect(leftEye, eyeStroke);
     canvas.drawRRect(rightEye, eyeStroke);
 
-    // Mouth
-    canvas.drawPath(
-      Path()
-        ..moveTo(w * 0.30, h * 0.75)
-        ..quadraticBezierTo(w * 0.50, h * 0.83, w * 0.70, h * 0.75),
-      Paint()
-        ..color = AppColors.maroon
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.6
-        ..strokeCap = StrokeCap.round,
-    );
+    final mouthPaint = Paint()
+      ..color = AppColors.void_
+      ..style = PaintingStyle.fill;
+    final mouthPath = Path()
+      ..moveTo(w * 0.34, h * 0.72)
+      ..lineTo(w * 0.42, h * 0.76)
+      ..lineTo(w * 0.50, h * 0.72)
+      ..lineTo(w * 0.58, h * 0.76)
+      ..lineTo(w * 0.66, h * 0.72)
+      ..lineTo(w * 0.66, h * 0.76)
+      ..lineTo(w * 0.58, h * 0.80)
+      ..lineTo(w * 0.50, h * 0.76)
+      ..lineTo(w * 0.42, h * 0.80)
+      ..lineTo(w * 0.34, h * 0.76)
+      ..close();
+    canvas.drawPath(mouthPath, mouthPaint);
   }
 
   Path _bagPath(double w, double h) => Path()
-    ..moveTo(w * 0.14, h * 0.27)
-    ..lineTo(w * 0.03, h * 0.91)
-    ..quadraticBezierTo(w * 0.03, h * 0.96, w * 0.07, h * 0.96)
-    ..lineTo(w * 0.93, h * 0.96)
-    ..quadraticBezierTo(w * 0.97, h * 0.96, w * 0.97, h * 0.91)
-    ..lineTo(w * 0.86, h * 0.27)
+    ..moveTo(w * 0.10, h * 0.28)
+    ..lineTo(w * 0.00, h * 0.95)
+    ..quadraticBezierTo(w * 0.00, h * 1.00, w * 0.07, h * 1.00)
+    ..lineTo(w * 0.93, h * 1.00)
+    ..quadraticBezierTo(w * 1.00, h * 1.00, w * 1.00, h * 0.95)
+    ..lineTo(w * 0.90, h * 0.28)
+    ..quadraticBezierTo(w * 0.88, h * 0.20, w * 0.78, h * 0.18)
+    ..lineTo(w * 0.22, h * 0.18)
+    ..quadraticBezierTo(w * 0.12, h * 0.20, w * 0.10, h * 0.28)
     ..close();
 
   @override
