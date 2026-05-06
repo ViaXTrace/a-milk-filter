@@ -592,15 +592,15 @@ class _MilkBagPainter extends CustomPainter {
     );
 
     final bagPaint = Paint()
-      ..shader = LinearGradient(
+      ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          const Color(0xFF7A0025),
+          Color(0xFF7A0025),
           AppColors.crimson,
           AppColors.maroon,
         ],
-        stops: const [0.0, 0.5, 1.0],
+        stops: [0.0, 0.5, 1.0],
       ).createShader(Rect.fromLTWH(0, 0, w, h));
     canvas.drawPath(_bagPath(w, h), bagPaint);
 
