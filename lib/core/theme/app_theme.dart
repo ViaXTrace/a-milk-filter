@@ -83,7 +83,7 @@ abstract final class AppTheme {
       activeTrackColor: AppColors.crimson,
       inactiveTrackColor: AppColors.crypt,
       thumbColor: AppColors.crimson,
-      overlayColor: AppColors.crimson.withOpacity(0.10),
+      overlayColor: AppColors.crimson.withValues(alpha: 0.10),
       trackHeight: 2,
       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
       overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),

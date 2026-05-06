@@ -185,8 +185,8 @@ class _DividerHandle extends StatelessWidget {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                AppColors.crimson.withOpacity(isDragging ? 0.95 : 0.65),
-                AppColors.crimson.withOpacity(isDragging ? 0.95 : 0.65),
+                AppColors.crimson.withValues(alpha: isDragging ? 0.95 : 0.65),
+                AppColors.crimson.withValues(alpha: isDragging ? 0.95 : 0.65),
                 Colors.transparent,
               ],
               stops: const [0.0, 0.12, 0.88, 1.0],
@@ -209,14 +209,14 @@ class _DividerHandle extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(
                 color: isDragging
-                    ? AppColors.chalk.withOpacity(0.25)
+                    ? AppColors.chalk.withValues(alpha: 0.25)
                     : AppColors.crimson,
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.crimson
-                      .withOpacity(isDragging ? 0.55 : 0.30),
+                      .withValues(alpha: isDragging ? 0.55 : 0.30),
                   blurRadius: isDragging ? 20 : 12,
                 ),
               ],
@@ -267,7 +267,7 @@ class _HintPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
     decoration: BoxDecoration(
-      color: AppColors.void_.withOpacity(0.70),
+      color: AppColors.void_.withValues(alpha: 0.70),
       borderRadius: BorderRadius.circular(20),
       border: Border.all(color: AppColors.border),
     ),
@@ -315,7 +315,7 @@ class _ProcessingOverlayState extends State<_ProcessingOverlay>
   @override
   Widget build(BuildContext context) => SizedBox.expand(
     child: ColoredBox(
-      color: AppColors.void_.withOpacity(0.80),
+      color: AppColors.void_.withValues(alpha: 0.80),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -326,7 +326,7 @@ class _ProcessingOverlayState extends State<_ProcessingOverlay>
                 width: 38,
                 height: 38,
                 child: CircularProgressIndicator(
-                  color: AppColors.crimson.withOpacity(0.55 + _pulse.value * 0.45),
+                  color: AppColors.crimson.withValues(alpha: 0.55 + _pulse.value * 0.45),
                   strokeWidth: 1.5,
                 ),
               ),
@@ -368,8 +368,8 @@ class _PaneLabel extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
       color: accent
-          ? AppColors.crimson.withOpacity(0.88)
-          : AppColors.abyss.withOpacity(0.78),
+          ? AppColors.crimson.withValues(alpha: 0.88)
+          : AppColors.abyss.withValues(alpha: 0.78),
       borderRadius: BorderRadius.circular(5),
       border: Border.all(
         color: accent ? AppColors.crimson : AppColors.border,
@@ -378,7 +378,7 @@ class _PaneLabel extends StatelessWidget {
       boxShadow: accent
           ? [
               BoxShadow(
-                color: AppColors.crimson.withOpacity(0.32),
+                color: AppColors.crimson.withValues(alpha: 0.32),
                 blurRadius: 10,
               ),
             ]
@@ -406,7 +406,7 @@ class _EmptyHint extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.abyss.withOpacity(0.65),
+        color: AppColors.abyss.withValues(alpha: 0.65),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
       ),

@@ -198,7 +198,7 @@ class _PaletteCardState extends State<_PaletteCard> {
             boxShadow: sel
                 ? [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.22),
+                      color: AppColors.crimson.withValues(alpha: 0.22),
                       blurRadius: 14,
                       offset: const Offset(0, 2),
                     ),
@@ -247,7 +247,7 @@ class _PaletteCardState extends State<_PaletteCard> {
                       color: AppColors.crimson,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.crimson.withOpacity(0.75),
+                          color: AppColors.crimson.withValues(alpha: 0.75),
                           blurRadius: 7,
                         ),
                       ],
@@ -317,7 +317,7 @@ class _ToggleRow extends StatelessWidget {
       color: value ? AppColors.vessel : AppColors.crypt,
       borderRadius: BorderRadius.circular(10),
       border: Border.all(
-        color: value ? accentColor.withOpacity(0.45) : AppColors.border,
+        color: value ? accentColor.withValues(alpha: 0.45) : AppColors.border,
       ),
     ),
     child: Row(
@@ -388,7 +388,7 @@ class _CompressionSection extends StatelessWidget {
                 : BorderRadius.circular(10),
             border: Border.all(
               color: active
-                  ? AppColors.crimson.withOpacity(0.45)
+                  ? AppColors.crimson.withValues(alpha: 0.45)
                   : AppColors.border,
             ),
           ),
@@ -444,13 +444,13 @@ class _CompressionSection extends StatelessWidget {
                     ),
                     border: Border(
                       left: BorderSide(
-                        color: AppColors.crimson.withOpacity(0.35),
+                        color: AppColors.crimson.withValues(alpha: 0.35),
                       ),
                       right: BorderSide(
-                        color: AppColors.crimson.withOpacity(0.35),
+                        color: AppColors.crimson.withValues(alpha: 0.35),
                       ),
                       bottom: BorderSide(
-                        color: AppColors.crimson.withOpacity(0.35),
+                        color: AppColors.crimson.withValues(alpha: 0.35),
                       ),
                     ),
                   ),

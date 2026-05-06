@@ -278,9 +278,9 @@ class _ErrorBanner extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
     decoration: BoxDecoration(
-      color: AppColors.blood.withOpacity(0.09),
+      color: AppColors.blood.withValues(alpha: 0.09),
       border: Border(
-        bottom: BorderSide(color: AppColors.blood.withOpacity(0.28)),
+        bottom: BorderSide(color: AppColors.blood.withValues(alpha: 0.28)),
       ),
     ),
     child: Row(
@@ -395,7 +395,7 @@ class _ApplyButtonState extends State<_ApplyButton> {
                 ? null
                 : [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.32),
+                      color: AppColors.crimson.withValues(alpha: 0.32),
                       blurRadius: 18,
                       offset: const Offset(0, 3),
                     ),
@@ -485,7 +485,7 @@ class _IconActionState extends State<_IconAction> {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: widget.accent
-                  ? AppColors.mauve.withOpacity(0.45)
+                  ? AppColors.mauve.withValues(alpha: 0.45)
                   : AppColors.border,
             ),
           ),

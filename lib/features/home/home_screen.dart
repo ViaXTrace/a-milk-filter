@@ -194,7 +194,7 @@ class _AtmosphericGlow extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: RadialGradient(
               colors: [
-                color.withOpacity(minOpacity + controller.value * opacityRange),
+                color.withValues(alpha: minOpacity + controller.value * opacityRange),
                 Colors.transparent,
               ],
             ),
@@ -272,7 +272,7 @@ class _TitleBlock extends StatelessWidget {
                   color: AppColors.chalk,
                   shadows: [
                     Shadow(
-                      color: AppColors.crimson.withOpacity(0.5),
+                      color: AppColors.crimson.withValues(alpha: 0.5),
                       blurRadius: 28,
                     ),
                   ],
@@ -285,7 +285,7 @@ class _TitleBlock extends StatelessWidget {
                   color: AppColors.crimson,
                   shadows: [
                     Shadow(
-                      color: AppColors.crimson.withOpacity(0.6),
+                      color: AppColors.crimson.withValues(alpha: 0.6),
                       blurRadius: 22,
                     ),
                   ],
@@ -298,7 +298,7 @@ class _TitleBlock extends StatelessWidget {
         Text(
           'outside the bag of milk',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: AppColors.mauve.withOpacity(0.65),
+            color: AppColors.mauve.withValues(alpha: 0.65),
             letterSpacing: 1.0,
             fontSize: 8,
           ),
@@ -313,9 +313,9 @@ class _PaletteStamps extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: const [
+      children: [
         SizedBox(height: 6),
         _PaletteStamp(
           label: 'MILK I',
@@ -428,19 +428,19 @@ class _DropZone extends StatelessWidget {
                   color: isPressed ? AppColors.crypt : AppColors.abyss,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppColors.crimson.withOpacity(
-                      isPressed ? 0.55 : 0.16 + pulse * 0.24,
+                    color: AppColors.crimson.withValues(
+                      alpha: isPressed ? 0.55 : 0.16 + pulse * 0.24,
                     ),
                     width: isPressed ? 1.5 : 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.05 + pulse * 0.09),
+                      color: AppColors.crimson.withValues(alpha: 0.05 + pulse * 0.09),
                       blurRadius: 36,
                       spreadRadius: 2,
                     ),
                     BoxShadow(
-                      color: AppColors.mauve.withOpacity(0.03 + pulse * 0.05),
+                      color: AppColors.mauve.withValues(alpha: 0.03 + pulse * 0.05),
                       blurRadius: 56,
                       spreadRadius: 4,
                     ),
@@ -626,7 +626,7 @@ class _SourceButtonState extends State<_SourceButton> {
             boxShadow: widget.accent && !_pressed && !disabled
                 ? [
                     BoxShadow(
-                      color: AppColors.crimson.withOpacity(0.30),
+                      color: AppColors.crimson.withValues(alpha: 0.30),
                       blurRadius: 18,
                       offset: const Offset(0, 4),
                     ),
@@ -711,11 +711,11 @@ class _PulseDots extends StatelessWidget {
               shape: BoxShape.circle,
               color: i == 0
                   ? AppColors.crimson
-                  : AppColors.crimson.withOpacity(0.25 - i * 0.08),
+                  : AppColors.crimson.withValues(alpha: 0.25 - i * 0.08),
               boxShadow: i == 0
                   ? [
                       BoxShadow(
-                        color: AppColors.crimson.withOpacity(0.75),
+                        color: AppColors.crimson.withValues(alpha: 0.75),
                         blurRadius: 7,
                       ),
                     ]
@@ -742,7 +742,7 @@ class _MilkBagPainter extends CustomPainter {
     canvas.drawPath(
       _bagPath(w, h),
       Paint()
-        ..color = AppColors.crimson.withOpacity(0.22)
+        ..color = AppColors.crimson.withValues(alpha: 0.22)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16),
     );
 
@@ -763,7 +763,7 @@ class _MilkBagPainter extends CustomPainter {
         ..lineTo(w * 0.27, h * 0.27)
         ..close(),
       Paint()
-        ..color = AppColors.chalk.withOpacity(0.04)
+        ..color = AppColors.chalk.withValues(alpha: 0.04)
         ..style = PaintingStyle.fill,
     );
 
@@ -783,16 +783,16 @@ class _MilkBagPainter extends CustomPainter {
       Paint()
         ..shader = LinearGradient(
           colors: [
-            AppColors.mauve.withOpacity(0.0),
-            AppColors.mauve.withOpacity(0.9),
-            AppColors.mauve.withOpacity(0.0),
+            AppColors.mauve.withValues(alpha: 0.0),
+            AppColors.mauve.withValues(alpha: 0.9),
+            AppColors.mauve.withValues(alpha: 0.0),
           ],
         ).createShader(Rect.fromLTWH(w * 0.12, h * 0.20, w * 0.76, h * 0.045)),
     );
 
     // Fold crease lines on bag body
     final creasePaint = Paint()
-      ..color = AppColors.maroon.withOpacity(0.4)
+      ..color = AppColors.maroon.withValues(alpha: 0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8;
     canvas.drawLine(Offset(w * 0.35, h * 0.32), Offset(w * 0.27, h * 0.90), creasePaint);

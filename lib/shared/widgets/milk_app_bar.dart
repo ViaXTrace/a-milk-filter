@@ -112,7 +112,7 @@ class _AppBarTitle extends StatelessWidget {
           Text(
             subtitle!,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.mauve.withOpacity(0.85),
+              color: AppColors.mauve.withValues(alpha: 0.85),
               letterSpacing: 0.6,
               fontSize: 9,
             ),

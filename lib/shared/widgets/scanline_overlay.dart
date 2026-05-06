@@ -29,7 +29,7 @@ class _ScanlinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black.withOpacity(opacity)
+      ..color = Colors.black.withValues(alpha: opacity)
       ..style = PaintingStyle.fill;
     double y = 0;
     while (y < size.height) {
