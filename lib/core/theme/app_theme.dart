@@ -88,7 +88,8 @@ abstract final class AppTheme {
       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
       overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
       valueIndicatorColor: AppColors.maroon,
-      showValueIndicator: ShowValueIndicator.onDrag,
+      // ignore: deprecated_member_use
+      showValueIndicator: ShowValueIndicator.always,
       valueIndicatorTextStyle: const TextStyle(
         fontFamily: 'Courier New',
         fontSize: 10,
