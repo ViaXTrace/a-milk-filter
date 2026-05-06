@@ -15,7 +15,8 @@ void main() {
     });
 
     test('maps mid brightness (150) to crimson', () {
-      expect(palette.resolve(150, stochastic: false), equals(0xFF660020));
+      // Pixel-exact: Python (102,0,31) → 0xFF66001F
+      expect(palette.resolve(150, stochastic: false), equals(0xFF66001F));
     });
 
     test('maps high brightness (235) to mauve', () {
@@ -31,7 +32,8 @@ void main() {
     });
 
     test('maps mid brightness (120) to rust', () {
-      expect(palette.resolve(120, stochastic: false), equals(0xFF5C2420));
+      // Pixel-exact: Python (92,36,60) → 0xFF5C243C
+      expect(palette.resolve(120, stochastic: false), equals(0xFF5C243C));
     });
 
     test('maps high brightness (210) to blood red', () {
