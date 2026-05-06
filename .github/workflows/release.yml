@@ -4,13 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g. 1.0.0)'
+        description: 'Release version (e.g. 1.2.0)'
         required: true
         default: '1.0.0'
       release_notes:
-        description: 'Release notes'
+        description: 'Release notes (shown in GitHub Release body)'
         required: false
-        default: 'Initial release of A Milk Filter.'
+        default: 'New release of A Milk Filter.'
+      prerelease:
+        description: 'Mark as pre-release?'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   build-release:
@@ -20,44 +28,44 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Flutter
+      - name: Setup Flutter (stable)
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.2'
           channel: stable
           cache: true
+
+      - name: Print Flutter version
+        run: flutter --version
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Format code
-        run: dart format lib/ test/
+      - name: Static analysis
+        run: flutter analyze
 
-      - name: Run static analysis (advisory)
-        run: flutter analyze || true
+      - name: Unit tests
+        run: flutter test --reporter=expanded
 
-      - name: Run unit tests
-        run: flutter test
-
-      - name: Build split APKs (arm64-v8a, armeabi-v7a, x86_64)
+      - name: Build split release APKs (arm64-v8a · armeabi-v7a · x86_64)
         run: flutter build apk --release --split-per-abi
 
-      - name: Rename APKs with version suffix
+      - name: Rename APKs with version + arch suffix
         run: |
           cd build/app/outputs/flutter-apk
           for f in app-*-release.apk; do
-            arch=$(echo "$f" | sed 's/app-\(.*\)-release.apk/\1/')
-            mv "$f" "a-milk-filter-${arch}-v${{ github.event.inputs.version }}.apk"
+            arch=$(echo "$f" | sed 's/app-\(.*\)-release\.apk/\1/')
+            mv "$f" "a-milk-filter-v${{ github.event.inputs.version }}-${arch}.apk"
           done
+          echo "── Built APKs ──"
           ls -lh *.apk
 
       - name: Upload APKs as workflow artifact
@@ -65,13 +73,15 @@ jobs:
         with:
           name: apks-v${{ github.event.inputs.version }}
           path: build/app/outputs/flutter-apk/*.apk
-          retention-days: 30
+          retention-days: 90
+          if-no-files-found: error
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.event.inputs.version }}
           name: "A Milk Filter v${{ github.event.inputs.version }}"
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
           files: build/app/outputs/flutter-apk/*.apk
           body: |
             ## A Milk Filter v${{ github.event.inputs.version }}
@@ -82,23 +92,34 @@ jobs:
 
             ### Download
 
-            | Architecture | Devices |
-            |---|---|
-            | `arm64-v8a` | Modern Android 64-bit (recommended) |
-            | `armeabi-v7a` | Older ARM 32-bit devices |
-            | `x86_64` | Emulators / x86 devices |
+            Pick the APK that matches your device:
+
+            | File | Architecture | Devices |
+            |---|---|---|
+            | `a-milk-filter-v${{ github.event.inputs.version }}-arm64-v8a.apk` | ARM 64-bit | All modern Android phones (recommended) |
+            | `a-milk-filter-v${{ github.event.inputs.version }}-armeabi-v7a.apk` | ARM 32-bit | Older devices |
+            | `a-milk-filter-v${{ github.event.inputs.version }}-x86_64.apk` | x86 64-bit | Emulators |
 
             ---
 
-            ### Installation
+            ### Install
 
-            1. Download the APK matching your device architecture
-            2. Enable **Install from unknown sources** in Android Settings → Security
-            3. Open the APK to install
+            1. Download the APK for your architecture
+            2. On your Android device: **Settings → Security → Install unknown apps** → allow your browser/file manager
+            3. Open the downloaded APK and tap **Install**
 
             ---
-            *Built with Flutter 3.22 · Inspired by "Milk Outside a Bag of Milk Outside a Bag of Milk"*
-          draft: false
-          prerelease: false
+
+            ### What's inside
+
+            - Milk I palette: void · crimson · mauve
+            - Milk II palette: void · rust · blood
+            - Pointillism mode (stochastic dithering at band boundaries)
+            - JPEG compression pre-pass (DCT artifacts + palette quantization)
+            - Draggable before/after split-screen comparison
+            - Save to gallery · Share via system sheet
+
+            ---
+            *Built with Flutter stable · Android minSdk 21 · Inspired by "Milk Outside a Bag of Milk Outside a Bag of Milk"*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
